@@ -12,56 +12,50 @@
         }
         body { 
             background: var(--bg-dark); color: white; 
-            font-family: 'Arial Rounded MT Bold', sans-serif; 
+            font-family: -apple-system, BlinkMacSystemFont, sans-serif; 
             margin: 0; height: 100vh; overflow: hidden; 
             display: flex; flex-direction: column;
         }
 
-        /* АНИМИРОВАННЫЙ ЖИВОЙ ФОН */
+        /* ЖИВОЙ КОСМИЧЕСКИЙ ФОН */
         #money-canvas { 
             position: fixed; inset: 0; z-index: -1; 
             background: radial-gradient(circle at 50% 50%, #0a1f35 0%, #020a12 100%);
         }
 
-        /* ВЕРХНЯЯ ПАНЕЛЬ */
         header { padding: 50px 0 10px; text-align: center; z-index: 10; pointer-events: none; }
         #balance { 
-            font-size: 80px; font-weight: 900; color: var(--gold); 
+            font-size: 75px; font-weight: 900; color: var(--gold); 
             text-shadow: 0 0 50px rgba(255,215,0,0.6);
-            display: flex; align-items: center; justify-content: center; gap: 10px;
         }
-        .profit-text { font-size: 14px; opacity: 0.7; letter-spacing: 3px; font-weight: bold; }
+        .profit-text { font-size: 14px; opacity: 0.7; letter-spacing: 2px; font-weight: bold; }
 
-        /* ИГРОВАЯ ЗОНА */
+        /* ГЕРОЙ И ПРЫЖКИ */
         #game-area {
             position: relative; flex: 1; display: flex; align-items: center; justify-content: center;
-            cursor: pointer; perspective: 1000px;
+            cursor: pointer;
         }
         
-        /* КРАСИВАЯ ЗЕМЛЯ */
         #ground {
-            position: absolute; bottom: -5vh; width: 150%; height: 30vh;
+            position: absolute; bottom: -5vh; width: 140%; height: 28vh;
             background: radial-gradient(ellipse at top, #1b4d3e 0%, #051a14 70%);
-            border-top: 4px solid var(--neon);
+            border-top: 3px solid var(--neon);
             border-radius: 50% 50% 0 0;
-            box-shadow: 0 -20px 80px rgba(0, 242, 255, 0.2);
-            filter: blur(1px);
+            box-shadow: 0 -15px 60px rgba(0, 242, 255, 0.2);
         }
 
-        /* ПЕРСОНАЖ И ЕГО АНИМАЦИИ */
         #donald-container {
             position: relative; z-index: 5;
             transition: transform 0.1s cubic-bezier(0.175, 0.885, 0.32, 1.275);
         }
 
         #donald {
-            width: 280px; height: 280px;
-            filter: drop-shadow(0 0 20px rgba(0,0,0,0.8));
+            width: 270px; height: 270px;
+            filter: drop-shadow(0 0 30px rgba(0,0,0,0.8));
             transition: all 0.3s ease;
         }
 
-        /* КЛАСС ДЛЯ ПРЫЖКА */
-        .jump { transform: translateY(-50px) scale(1.05); }
+        .jump { transform: translateY(-60px) scale(1.1); }
 
         /* КЛИК-ЭФФЕКТ */
         .tap-effect {
@@ -70,31 +64,32 @@
             animation: flyUp 0.7s ease-out forwards; z-index: 100;
         }
         @keyframes flyUp {
-            0% { transform: translateY(0) scale(1) rotate(0deg); opacity: 1; }
-            100% { transform: translateY(-250px) scale(1.5) rotate(15deg); opacity: 0; }
+            0% { transform: translateY(0) scale(1); opacity: 1; }
+            100% { transform: translateY(-250px) scale(1.5); opacity: 0; }
         }
 
-        /* НИЖНЕЕ МЕНЮ */
+        /* МЕНЮ GLASSMORPHISM */
         nav {
-            position: fixed; bottom: 30px; left: 5%; width: 90%; height: 85px;
+            position: fixed; bottom: 30px; left: 5%; width: 90%; height: 80px;
             background: rgba(255,255,255,0.05); backdrop-filter: blur(20px);
             border-radius: 30px; border: 1px solid rgba(255,255,255,0.1);
             display: flex; justify-content: space-around; align-items: center; z-index: 1000;
         }
-        .nav-btn { text-align: center; opacity: 0.5; transition: 0.3s; flex: 1; color: white; text-decoration: none; font-size: 13px; font-weight: bold; }
-        .nav-btn.active { opacity: 1; color: var(--neon); transform: translateY(-5px); text-shadow: 0 0 15px var(--neon); }
+        .nav-btn { text-align: center; opacity: 0.5; transition: 0.3s; flex: 1; color: white; text-decoration: none; font-size: 13px; }
+        .nav-btn.active { opacity: 1; color: var(--neon); transform: translateY(-5px); text-shadow: 0 0 10px var(--neon); }
 
-        /* МОДАЛЬНЫЕ ОКНА */
         .modal {
-            display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.95);
-            z-index: 2000; padding: 40px 20px;
+            display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.96);
+            z-index: 2000; padding: 40px 20px; animation: fadeIn 0.3s;
         }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
         .item-card {
-            background: rgba(255,255,255,0.07); border-radius: 20px; padding: 20px;
+            background: rgba(255,255,255,0.06); border-radius: 20px; padding: 20px;
             margin-bottom: 15px; display: flex; align-items: center; gap: 20px;
             border: 1px solid rgba(255,255,255,0.1);
         }
-        .buy-btn { background: var(--gold); border: none; padding: 15px 25px; border-radius: 15px; font-weight: 900; cursor: pointer; }
+        .buy-btn { background: var(--gold); border: none; padding: 15px 20px; border-radius: 15px; font-weight: 900; }
     </style>
 </head>
 <body>
@@ -114,111 +109,79 @@
     </div>
 
     <nav>
-        <div class="nav-btn active" onclick="toggleMod('none', this)">💎<br>Farm</div>
+        <div class="nav-btn active" onclick="toggleMod('none', this)">🏡<br>Farm</div>
         <div class="nav-btn" onclick="toggleMod('shop', this)">⚡<br>Upgrades</div>
-        <div class="nav-btn" onclick="toggleMod('skins', this)">🎨<br>Outfits</div>
+        <div class="nav-btn" onclick="toggleMod('skins', this)">🎨<br>Skins</div>
     </nav>
 
     <div id="shop" class="modal">
-        <h1 style="text-align:center; color:var(--gold);">BLACK MARKET</h1>
+        <h1 style="text-align:center; color:var(--gold);">FARM MARKET</h1>
         <div class="item-card">
-            <div class="item-info"><b>Golden Corn</b><br><small>+5 per tap</small></div>
+            <div><b>Golden Corn</b><br><small>+5 per tap</small></div>
             <button class="buy-btn" onclick="upgrade(1)">Cost: <span id="c1">100</span></button>
         </div>
         <div class="item-card">
-            <div class="item-info"><b>Cyber Tractor</b><br><small>+15 per sec</small></div>
+            <div><b>Auto Tractor</b><br><small>+15 per sec</small></div>
             <button class="buy-btn" onclick="upgrade(2)">Cost: <span id="c2">500</span></button>
         </div>
-        <button onclick="toggleMod('none')" style="width:100%; padding:20px; background:none; color:white; border:1px solid #333; border-radius: 20px; margin-top: 20px;">BACK TO FARM</button>
+        <button onclick="toggleMod('none')" style="width:100%; padding:20px; background:none; color:white; border:none; font-weight:bold;">BACK</button>
     </div>
 
     <div id="skins" class="modal">
         <h1 style="text-align:center; color:var(--gold);">WARDROBE</h1>
         <div id="skin-list"></div>
-        <button onclick="toggleMod('none')" style="width:100%; padding:20px; background:none; color:white; border:1px solid #333; border-radius: 20px; margin-top: 20px;">CLOSE</button>
+        <button onclick="toggleMod('none')" style="width:100%; padding:20px; background:none; color:white; border:none; font-weight:bold;">CLOSE</button>
     </div>
 
     <script>
-        let score = 0;
-        let income = 0;
-        let tapPower = 1;
-        let tapCount = 0;
-        let costs = [100, 500];
+        let score = 0, income = 0, tapPower = 1, tapCount = 0, costs = [100, 500];
 
-        // --- АНИМИРОВАННЫЙ ФОН И "СЛИПАЮЩИЕСЯ" МОНЕТЫ ---
+        // АНИМАЦИЯ ФОНА (ЧАСТИЦЫ)
         const canvas = document.getElementById('money-canvas');
         const ctx = canvas.getContext('2d');
-        canvas.width = window.innerWidth;
-        canvas.height = window.innerHeight;
-
-        let particles = Array.from({length: 50}, () => ({
+        canvas.width = window.innerWidth; canvas.height = window.innerHeight;
+        let particles = Array.from({length: 40}, () => ({
             x: Math.random() * canvas.width, 
             y: Math.random() * canvas.height, 
-            s: Math.random() * 3 + 1,
-            speed: Math.random() * 0.5 + 0.2,
-            angle: Math.random() * Math.PI * 2
+            s: Math.random() * 2 + 1,
+            speed: Math.random() * 0.4 + 0.1
         }));
 
-        function drawBackground() {
+        function draw() {
             ctx.clearRect(0,0,canvas.width,canvas.height);
-            
             particles.forEach(p => {
-                // Монеты плавно "текут" к верхней части экрана (к балансу)
-                let dx = canvas.width/2 - p.x;
-                let dy = -p.y;
-                p.x += dx * 0.002; 
-                p.y += dy * 0.005 + p.speed;
-
-                if (p.y < -20) {
-                    p.y = canvas.height + 20;
-                    p.x = Math.random() * canvas.width;
-                }
-
-                ctx.font = (p.s * 10) + "px serif";
                 ctx.globalAlpha = 0.3;
+                ctx.font = "20px serif";
                 ctx.fillText("💰", p.x, p.y);
+                p.y -= p.speed; // Монетки плывут вверх к счетчику
+                if(p.y < -20) p.y = canvas.height + 20;
             });
-            requestAnimationFrame(drawBackground);
+            requestAnimationFrame(draw);
         }
-        drawBackground();
+        draw();
 
-        // --- ЛОГИКА ТАПА И ПРЫЖКА ---
         function handleTap(e) {
             if(e.type === 'mousedown' && 'ontouchstart' in window) return;
-            
-            score += tapPower;
-            tapCount++;
-            updateUI();
+            score += tapPower; tapCount++; updateUI();
 
-            const donaldContainer = document.getElementById('donald-container');
-            const donaldImg = document.getElementById('donald');
+            const container = document.getElementById('donald-container');
+            const img = document.getElementById('donald');
 
-            // 1. Прыжок
-            donaldContainer.classList.remove('jump');
-            void donaldContainer.offsetWidth; // Магия для перезапуска анимации
-            donaldContainer.classList.add('jump');
-            setTimeout(() => donaldContainer.classList.remove('jump'), 100);
+            // ПРЫЖОК
+            container.classList.remove('jump');
+            void container.offsetWidth;
+            container.classList.add('jump');
 
-            // 2. Смена позы каждые 10 кликов
+            // СМЕНА ПОЗЫ КАЖДЫЕ 10 КЛИКОВ
             if(tapCount % 10 === 0) {
-                const poses = [
-                    'scaleX(1) rotate(0deg)',
-                    'scaleX(-1) rotate(5deg)',
-                    'scaleX(1) rotate(-10deg) skew(5deg)',
-                    'scale(1.2) rotate(10deg)',
-                    'scaleX(-1) brightness(1.5)'
-                ];
-                const randomPose = poses[Math.floor(Math.random() * poses.length)];
-                donaldImg.style.transform = randomPose;
+                const poses = ['scaleX(1)', 'scaleX(-1)', 'rotate(10deg)', 'rotate(-10deg)'];
+                img.style.transform = poses[Math.floor(Math.random() * poses.length)];
             }
 
-            // 3. Текст клика
             const touch = e.touches ? e.touches[0] : e;
             const div = document.createElement('div');
-            div.className = 'tap-effect'; 
-            div.innerText = '+$' + tapPower;
-            div.style.left = touch.clientX + 'px'; 
-            div.style.top = touch.clientY + 'px';
+            div.className = 'tap-effect'; div.innerText = '+$' + tapPower;
+            div.style.left = touch.clientX + 'px'; div.style.top = touch.clientY + 'px';
             document.body.appendChild(div);
             setTimeout(() => div.remove(), 700);
         }
@@ -235,8 +198,7 @@
             if(score >= costs[i]) {
                 score -= costs[i];
                 if(n===1) tapPower += 5; else income += 15;
-                costs[i] = Math.round(costs[i] * 2.8); 
-                updateUI();
+                costs[i] = Math.round(costs[i] * 2.8); updateUI();
             }
         }
 
@@ -249,38 +211,7 @@
             }
         }
 
-        // Авто-доход
-        setInterval(() => { 
-            if(income > 0) {
-                score += income; 
-                updateUI();
-            }
-        }, 1000);
-
-        // Инициализация скинов (как в твоем коде)
-        const skinData = [
-            {n: "Classic", p: 0, h: 0},
-            {n: "Neon Hunter", p: 2000, h: 180},
-            {n: "Golden King", p: 10000, h: 50},
-            {n: "Void Duck", p: 50000, h: 280}
-        ];
-        const sList = document.getElementById('skin-list');
-        skinData.forEach(s => {
-            sList.innerHTML += `
-                <div class="item-card" onclick="setSkin(${s.p}, ${s.h})">
-                    <img src="https://www.pngarts.com/files/3/Donald-Duck-PNG-Transparent-Image.png" style="width:60px; filter: hue-rotate(${s.h}deg)">
-                    <div class="item-info"><b>${s.n}</b><br><span>Price: ${s.p}</span></div>
-                    <button class="buy-btn" style="background:${score >= s.p ? '#00f2ff' : '#555'}">${score >= s.p ? 'USE' : 'LOCKED'}</button>
-                </div>
-            `;
-        });
-
-        function setSkin(price, hue) {
-            if(score >= price) {
-                document.getElementById('donald').style.filter = `hue-rotate(${hue}deg) drop-shadow(0 0 20px gold)`;
-                toggleMod('none');
-            }
-        }
+        setInterval(() => { score += income; updateUI(); }, 1000);
     </script>
 </body>
 </html>
