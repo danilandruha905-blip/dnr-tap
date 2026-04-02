@@ -3,76 +3,103 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>Donald Wealth Evolution</title>
+    <title>Donald Golden Empire</title>
     <style>
-        :root { --gold: #ffd700; --neon: #00f2ff; --glass: rgba(255, 255, 255, 0.07); }
+        :root { 
+            --gold: #FFD700; --neon-blue: #00F2FF; --neon-purple: #BC13FE; --neon-green: #39FF14;
+            --glass: rgba(255, 255, 255, 0.08); --border-glass: rgba(255,255,255,0.1);
+        }
         body { 
-            background: radial-gradient(circle at center, #001a33 0%, #000 100%); 
-            color: white; font-family: 'Arial Rounded MT Bold', sans-serif; 
-            margin: 0; display: flex; flex-direction: column; align-items: center; 
-            height: 100vh; overflow: hidden; user-select: none;
+            background: #000; color: white; font-family: 'Segoe UI', Roboto, sans-serif; 
+            margin: 0; height: 100vh; overflow: hidden; display: flex; flex-direction: column; align-items: center;
         }
 
-        #bg-canvas { position: fixed; inset: 0; z-index: -1; pointer-events: none; }
+        #bg-canvas { position: fixed; inset: 0; z-index: -1; opacity: 0.6; }
 
-        /* ИНТЕРФЕЙС */
-        #header { width: 90%; margin-top: 30px; text-align: center; z-index: 10; }
-        #balance { font-size: 55px; font-weight: 900; color: var(--gold); text-shadow: 0 0 25px gold; }
-        #status { font-size: 14px; color: var(--neon); text-transform: uppercase; letter-spacing: 2px; margin-top: 5px; }
-
-        /* ГЛАВНЫЙ ГЕРОЙ */
-        #main-btn {
-            position: relative; width: 250px; height: 250px; border-radius: 50%;
-            background: radial-gradient(circle, #fff 0%, #ddd 100%);
-            border: 8px solid var(--gold); box-shadow: 0 0 50px rgba(255,215,0,0.3);
-            margin-top: 30px; cursor: pointer; transition: transform 0.05s; z-index: 5;
-            display: flex; align-items: center; justify-content: center; overflow: hidden;
-        }
-        #main-btn:active { transform: scale(0.9); }
-        #main-btn img { width: 85%; pointer-events: none; }
-
-        /* ЛЕТЯЩИЕ ДОНАЛЬДЫ К БАЛАНСУ */
-        .mini-donald {
-            position: absolute; width: 40px; height: 40px; z-index: 100;
-            background: url('https://www.pngarts.com/files/3/Donald-Duck-PNG-Transparent-Image.png') center/contain no-repeat;
-            pointer-events: none; animation: flyUpToBalance 0.7s ease-in forwards;
-        }
-        @keyframes flyUpToBalance {
-            0% { transform: scale(1) translateY(0); opacity: 1; }
-            100% { transform: scale(0.2) translateY(-400px); opacity: 0; }
+        /* ИНТЕРФЕЙС БАЛАНСА */
+        #header { padding: 30px 0 10px; text-align: center; z-index: 10; width: 90%; }
+        #balance { 
+            font-size: 60px; font-weight: 900; color: var(--gold); 
+            text-shadow: 0 0 30px rgba(255, 215, 0, 0.6); letter-spacing: -2px;
         }
 
-        /* МАГАЗИН И СКИНЫ */
+        /* ТАП-ЗОНА (НОВАЯ КОНЦЕПЦИЯ) */
+        #tap-zone {
+            position: relative; width: 100%; height: 50vh; margin-top: 10px;
+            cursor: pointer; display: flex; align-items: flex-end; justify-content: center; z-index: 5;
+        }
+        
+        /* ПЬЕДЕСТАЛ / ЛОКАЦИЯ (ПО УМОЛЧАНИЮ - ТРАВА) */
+        #pedestal {
+            position: absolute; bottom: 0; width: 350px; height: 120px;
+            background: linear-gradient(180deg, #1A4D1A 0%, #0D260D 100%);
+            border-radius: 50% 50% 0 0 / 100% 100% 0 0;
+            border-top: 4px solid #2ECC71; box-shadow: 0 10px 40px rgba(0,0,0,0.8);
+            transition: 0.5s cubic-bezier(0.18, 0.89, 0.32, 1.28);
+        }
+
+        /* ДЕРЕВО И ДОНАЛЬД (SVG - ГАРАНТИЯ ОТОБРАЖЕНИЯ) */
+        #donald-scene { position: relative; width: 200px; height: 300px; margin-bottom: 20px; pointer-events: none; transition: transform 0.05s; }
+        #tap-zone:active #donald-scene { transform: scale(0.95); }
+        
+        /* ГЛОБАЛЬНЫЙ МАГАЗИН (НЕОБЫЧНЫЙ ДИЗАЙН) */
         .modal { 
             display: none; position: fixed; inset: 0; z-index: 1000;
-            background: rgba(0,0,0,0.9); backdrop-filter: blur(20px);
-            padding: 25px; animation: slideUp 0.3s ease-out;
+            background: rgba(0,0,0,0.85); backdrop-filter: blur(25px);
+            padding: 30px 20px; animation: slideUp 0.4s cubic-bezier(0.18, 0.89, 0.32, 1.28);
         }
-        @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
-        
-        .tab-btn { background: var(--glass); border: 1px solid var(--gold); color: white; padding: 10px 20px; border-radius: 10px; margin-right: 10px; }
-        .tab-btn.active { background: var(--gold); color: black; }
+        @keyframes slideUp { from { transform: translateY(100%); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
 
-        .shop-content { margin-top: 20px; height: 70vh; overflow-y: auto; }
-        .card { 
-            background: var(--glass); border: 1px solid rgba(255,255,255,0.1); 
-            border-radius: 20px; padding: 15px; margin-bottom: 12px;
-            display: flex; justify-content: space-between; align-items: center;
+        .modal-title { font-size: 32px; font-weight: 900; text-align: center; margin-bottom: 20px; color: var(--gold); text-shadow: 0 0 15px gold; }
+
+        /* ПЕРЕКЛЮЧАТЕЛЬ МАГАЗИНОВ */
+        .shop-nav { display: flex; gap: 10px; justify-content: center; margin-bottom: 25px; }
+        .shop-tab { background: var(--glass); border: 1px solid var(--border-glass); color: white; padding: 12px 20px; border-radius: 15px; font-weight: bold; flex: 1; text-align: center; }
+        .shop-tab.active { background: var(--gold); color: black; box-shadow: 0 0 15px gold; }
+
+        .shop-content { display: none; flex-direction: column; gap: 15px; height: 70vh; overflow-y: auto; padding-right: 5px; }
+        .shop-content.active { display: flex; }
+
+        /* КАРТОЧКИ ТОВАРОВ / СКИНОВ */
+        .item-card {
+            background: var(--glass); border-radius: 20px; padding: 15px;
+            border: 1px solid var(--border-glass); display: flex; justify-content: space-between; align-items: center;
+            position: relative; overflow: hidden; transition: 0.3s;
         }
-        .skin-img { width: 50px; height: 50px; background: rgba(255,255,255,0.1); border-radius: 10px; padding: 5px; }
+        .item-card::before { content: ''; position: absolute; inset: -1px; background: linear-gradient(135deg, transparent 50%, rgba(255,255,255,0.05)); }
+        .item-card.active { border-color: var(--neon); }
+        .item-card.equipped { background: rgba(0,255,0,0.1); border-color: var(--neon-green); }
 
-        .btn-buy { background: var(--gold); border: none; padding: 10px 15px; border-radius: 12px; font-weight: 900; }
-        .btn-buy.owned { background: #555; color: #aaa; }
+        .card-preview { width: 50px; height: 50px; border-radius: 12px; display: flex; align-items: center; justify-content: center; background: rgba(255,255,255,0.05); }
+        .card-info { flex: 1; margin-left: 15px; }
+        .card-info b { font-size: 18px; color: white; display: block; }
+        .card-info span { font-size: 14px; color: var(--gold); font-weight: bold; }
+
+        .buy-btn {
+            background: var(--neon); color: black; border: none; padding: 10px 18px; 
+            border-radius: 12px; font-weight: 900; font-size: 13px;
+        }
+        .buy-btn.gold { background: var(--gold); }
+        .buy-btn.equipped { background: var(--neon-green); color: black; }
 
         /* МЕНЮ */
-        #footer { 
-            position: fixed; bottom: 20px; width: 92%; height: 70px;
-            background: var(--glass); backdrop-filter: blur(15px); 
-            border: 1px solid rgba(255,215,0,0.2); border-radius: 25px; 
-            display: flex; justify-content: space-around; align-items: center;
+        #nav { 
+            position: fixed; bottom: 25px; width: 90%; height: 75px;
+            background: var(--glass); backdrop-filter: blur(20px);
+            border-radius: 25px; border: 1px solid var(--border-glass);
+            display: flex; justify-content: space-around; align-items: center; z-index: 100;
         }
-        .nav-item { text-align: center; color: #777; font-size: 11px; cursor: pointer; flex: 1; }
-        .nav-item.active { color: var(--gold); }
+        .nav-link { text-align: center; opacity: 0.5; transition: 0.3s; cursor: pointer; flex: 1; }
+        .nav-link.active { opacity: 1; transform: translateY(-5px); color: var(--gold); }
+        .nav-link span { font-size: 11px; font-weight: bold; display: block; margin-top: 3px; }
+
+        /* ТАП-ЭФФЕКТЫ */
+        .tap-coin {
+            position: absolute; pointer-events: none; font-weight: 900; font-size: 32px;
+            color: #FFF; text-shadow: 0 0 15px gold; z-index: 1000;
+            animation: floatUp 0.7s ease-out forwards;
+        }
+        @keyframes floatUp { 0% { opacity: 1; transform: translateY(0); } 100% { opacity: 0; transform: translateY(-150px) rotate(20deg); } }
     </style>
 </head>
 <body>
@@ -80,150 +107,203 @@
 
     <div id="header">
         <div id="balance">💰 <span id="val">0</span></div>
-        <div id="status">СТАТУС: НОВИЧОК</div>
+        <div style="opacity: 0.4; font-size: 12px; letter-spacing: 2px;">PROFIT: +<span id="ps">0</span>/SEC</div>
     </div>
 
-    <div id="main-btn" onpointerdown="tap(event)">
-        <img id="donald-img" src="https://www.pngarts.com/files/3/Donald-Duck-PNG-Transparent-Image.png" alt="Donald">
+    <div id="tap-zone" onclick="handleTap(event)">
+        <div id="pedestal"></div>
+        <div id="donald-scene">
+            <svg viewBox="0 0 200 300" style="width:100%; height:100%;">
+                <path d="M160 300 Q150 200 160 100 Q180 50 160 0" stroke="#5D4037" stroke-width="15" fill="none"/>
+                <g id="donald-model">
+                    <ellipse cx="100" cy="150" rx="35" ry="45" fill="white" stroke="black"/>
+                    <circle cx="100" cy="100" r="25" fill="white" stroke="black"/>
+                    <ellipse cx="90" cy="95" rx="3" ry="6" fill="black"/>
+                    <ellipse cx="110" cy="95" rx="3" ry="6" fill="black"/>
+                    <path d="M80 115 Q100 135 120 115 Z" fill="#FF8800" stroke="black"/>
+                    <path d="M90 75 L110 75 L100 65 Z" fill="#0044FF"/>
+                    <path d="M100 195 L90 230 L110 230 Z" fill="#FF8800"/>
+                </g>
+            </svg>
+        </div>
     </div>
 
-    <div id="footer">
-        <div class="nav-item active" onclick="closeModals(this)">🏠<br>Home</div>
-        <div class="nav-item" onclick="openModal('shop-modal', this)">🚀<br>Shop</div>
-        <div class="nav-item" onclick="openModal('skins-modal', this)">👕<br>Skins</div>
+    <div id="nav">
+        <div class="nav-link active" onclick="showPage('main', this)">📊<span>Stats</span></div>
+        <div class="nav-link" onclick="showPage('shop-hub', this)">🚀<span>Empire</span></div>
+        <div class="nav-link" onclick="showPage('stars', this)">💎<span>Donate</span></div>
     </div>
 
-    <div id="shop-modal" class="modal">
-        <h1>UPGRADES</h1>
-        <div class="shop-content">
-            <div class="card">
-                <div><b>Super Tap</b><br><small>Price: <span id="c1">100</span></small></div>
-                <button class="btn-buy" onclick="buy(1)">UP</button>
+    <div id="shop-hub" class="modal">
+        <div class="modal-title">EMPIRE HUB</div>
+        
+        <div class="shop-nav">
+            <div class="shop-tab active" onclick="switchShopTab('upgrades', this)">Mining</div>
+            <div class="shop-tab" onclick="switchShopTab('skins', this)">Skins</div>
+            <div class="shop-tab" onclick="switchShopTab('podiums', this)">Podiums</div>
+        </div>
+
+        <div id="shop-upgrades" class="shop-content active">
+            <div class="item-card" style="--neon: var(--neon-blue);">
+                <div class="card-info"><b>Hyper Click</b><span>+2 / tap (Cost: <span id="c1">100</span>)</span></div>
+                <button class="buy-btn gold" onclick="buyUpgrade(1)">UP</button>
             </div>
-            <div class="card">
-                <div><b>Auto Mine</b><br><small>Price: <span id="c2">500</span></small></div>
-                <button class="btn-buy" onclick="buy(2)">UP</button>
+            <div class="item-card" style="--neon: var(--neon-purple);">
+                <div class="card-info"><b>Auto Farm</b><span>+10 / sec (Cost: <span id="c2">500</span>)</span></div>
+                <button class="buy-btn gold" onclick="buyUpgrade(2)">UP</button>
             </div>
         </div>
-        <button onclick="closeModals()" style="width:100%; padding:15px; background:none; border:1px solid #333; color:#fff; border-radius:15px;">BACK</button>
-    </div>
 
-    <div id="skins-modal" class="modal">
-        <h1>SKINS</h1>
-        <div class="shop-content">
-            <div class="card">
-                <img class="skin-img" src="https://www.pngarts.com/files/3/Donald-Duck-PNG-Transparent-Image.png">
-                <div><b>Cyber Duck</b><br><small>Price: 1,000</small></div>
-                <button class="btn-buy" id="s1" onclick="buySkin(1, 1000, '#00f2ff')">BUY</button>
+        <div id="shop-skins" class="shop-content">
+            <div class="item-card equipped" id="s0" style="--neon: var(--neon-green);">
+                <div class="card-preview">🦆</div>
+                <div class="card-info"><b>Base Duck</b><span>Equipped</span></div>
+                <button class="buy-btn equipped" onclick="equipSkin(0)">USE</button>
             </div>
-            <div class="card">
-                <img class="skin-img" src="https://www.pngarts.com/files/3/Donald-Duck-PNG-Transparent-Image.png" style="filter: brightness(0.5) sepia(1) hue-rotate(10deg) saturate(10);">
-                <div><b>Golden Lord</b><br><small>Price: 5,000</small></div>
-                <button class="btn-buy" id="s2" onclick="buySkin(2, 5000, 'gold')">BUY</button>
+            <div class="item-card" id="s1" style="--neon: #555;">
+                <div class="card-preview">🕶️</div>
+                <div class="card-info"><b>Cyber Duck</b><span>Cost: 1,000</span></div>
+                <button class="buy-btn" onclick="buySkin(1, 1000, '#555', '#00f2ff')">BUY</button>
+            </div>
+            <div class="item-card" id="s2" style="--neon: #ff0055;">
+                <div class="card-preview">🎎</div>
+                <div class="card-info"><b>Samurai</b><span>Cost: 10,000</span></div>
+                <button class="buy-btn" onclick="buySkin(2, 10000, '#ff0055', '#ff0055')">BUY</button>
+            </div>
+            <div class="item-card" id="s3" style="--neon: #ffd700;">
+                <div class="card-preview">👑</div>
+                <div class="card-info"><b>Gold King</b><span>Cost: 50,000</span></div>
+                <button class="buy-btn" onclick="buySkin(3, 50000, '#ffd700', 'gold')">BUY</button>
+            </div>
+            </div>
+
+        <div id="shop-podiums" class="shop-content">
+            <div class="item-card equipped" id="p0" style="--neon: #2ECC71;">
+                <div class="card-preview" style="background:linear-gradient(#1a1,#0a0)">🌿</div>
+                <div class="card-info"><b>Green Grass</b><span>Default</span></div>
+                <button class="buy-btn equipped" onclick="equipPodium(0)">USE</button>
+            </div>
+            <div class="item-card" id="p1" style="--neon: #FF4500;">
+                <div class="card-preview" style="background:linear-gradient(#f40,#a00)">🌋</div>
+                <div class="card-info"><b>Lava Lake</b><span>Cost: 5,000</span></div>
+                <button class="buy-btn" onclick="buyPodium(1, 5000, 'linear-gradient(180deg, #FF4500, #AA0000)', '#FF0000')">BUY</button>
+            </div>
+            <div class="item-card" id="p2" style="--neon: #87CEEB;">
+                <div class="card-preview" style="background:linear-gradient(#aee,#ace)">❄️</div>
+                <div class="card-info"><b>Ice Palace</b><span>Cost: 15,000</span></div>
+                <button class="buy-btn" onclick="buyPodium(2, 15000, 'linear-gradient(180deg, #AEEEEE, #87CEEB)', '#AEEEEE')">BUY</button>
             </div>
         </div>
-        <button onclick="closeModals()" style="width:100%; padding:15px; background:none; border:1px solid #333; color:#fff; border-radius:15px;">BACK</button>
+
+        <button onclick="showPage('main')" style="width:100%; margin-top: 25px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); color: #888; padding: 15px; border-radius: 18px; font-weight: bold;">BACK</button>
+    </div>
+
+    <div id="stars" class="modal">
+        <div class="modal-title">ELITE TREASURY</div>
+        <div class="item-card" style="--neon: #FF0055; border-color: #FF0055;">
+            <div class="card-preview">🎁</div>
+            <div class="card-info"><b>1,000,000 COINS</b><span>Instantly</span></div>
+            <button class="buy-btn" style="background: #0088CC; color: #fff;" onclick="alert('Stars payment...')">1000 ⭐</button>
+        </div>
+        <button onclick="showPage('main')" style="width:100%; margin-top: 25px; background: none; border: 1px solid #333; color: #555; padding: 15px; border-radius: 18px; font-weight: bold;">CLOSE</button>
     </div>
 
     <script>
-        // --- ПАДАЮЩИЕ МОНЕТЫ ---
+        let balance = 0, income = 0, tapPower = 1, costs = [100, 500];
+        let ownedSkins = [0], ownedPodiums = [0];
+
+        // ЗОЛОТОЙ ДОЖДЬ
         const canvas = document.getElementById('bg-canvas');
         const ctx = canvas.getContext('2d');
         canvas.width = window.innerWidth; canvas.height = window.innerHeight;
-        let coins = Array.from({length: 30}, () => ({x: Math.random()*canvas.width, y: Math.random()*canvas.height, s: Math.random()*2+1}));
-        function draw() {
+        let particles = Array.from({length: 40}, () => ({x: Math.random()*canvas.width, y: Math.random()*canvas.height, s: Math.random()*2+1}));
+
+        function animateBg() {
             ctx.clearRect(0,0,canvas.width,canvas.height);
-            ctx.font = "20px serif";
-            coins.forEach(c => {
-                ctx.fillText("💰", c.x, c.y);
-                c.y += c.s; if(c.y > canvas.height) c.y = -20;
+            ctx.fillStyle = "rgba(255, 215, 0, 0.2)";
+            particles.forEach(p => {
+                ctx.beginPath(); ctx.arc(p.x, p.y, p.r, p.s, 0, Math.PI*2); ctx.fill();
+                p.y += p.s * 0.5; if(p.y > canvas.height) p.y = -10;
             });
-            requestAnimationFrame(draw);
+            requestAnimationFrame(animateBg);
         }
-        draw();
+        animateBg();
 
-        // --- ЛОГИКА ИГРЫ ---
-        let balance = 0, tapPower = 1, income = 0, costs = [100, 500], ownedSkins = [0];
-
-        function tap(e) {
-            balance += tapPower;
-            updateUI();
-            checkEvolution();
-
-            // Маленький Дональд летит вверх
-            const mini = document.createElement('div');
-            mini.className = 'mini-donald';
-            mini.style.left = (e.clientX - 20) + 'px';
-            mini.style.top = (e.clientY - 20) + 'px';
-            document.body.appendChild(mini);
-            setTimeout(() => mini.remove(), 700);
-        }
-
-        function checkEvolution() {
-            const statusEl = document.getElementById('status');
-            const imgEl = document.getElementById('donald-img');
-            const btnEl = document.getElementById('main-btn');
-
-            if (balance >= 1000) {
-                statusEl.innerText = "СТАТУС: МИЛЛИАРДЕР";
-                btnEl.style.borderColor = "#ff00ff";
-                imgEl.style.filter = "drop-shadow(0 0 10px gold)";
-            } else if (balance >= 500) {
-                statusEl.innerText = "СТАТУС: МАГНАТ";
-                btnEl.style.borderColor = "var(--neon)";
-            } else if (balance >= 100) {
-                statusEl.innerText = "СТАТУС: БОГАЧ";
-                btnEl.style.borderColor = "white";
-            }
-        }
-
-        function updateUI() {
+        function refresh() {
             document.getElementById('val').innerText = Math.floor(balance);
+            document.getElementById('ps').innerText = income;
             document.getElementById('c1').innerText = costs[0];
             document.getElementById('c2').innerText = costs[1];
         }
 
-        function openModal(id, el) {
+        function handleTap(e) {
+            balance += tapPower;
+            let p = document.createElement('div'); p.className = 'tap-coin';
+            p.innerText = '+' + tapPower; p.style.left = e.clientX + 'px'; p.style.top = e.clientY + 'px';
+            document.body.appendChild(p); setTimeout(() => p.remove(), 700);
+            refresh();
+        }
+
+        // НАВИГАЦИЯ
+        function showPage(id, el) {
             document.querySelectorAll('.modal').forEach(m => m.style.display = 'none');
-            document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
-            document.getElementById(id).style.display = 'block';
+            if(id !== 'main') document.getElementById(id).style.display = 'block';
+            if(el) { document.querySelectorAll('.nav-link').forEach(b => b.classList.remove('active')); el.classList.add('active'); }
+        }
+
+        function switchShopTab(id, el) {
+            document.querySelectorAll('.shop-content').forEach(c => c.classList.remove('active'));
+            document.querySelectorAll('.shop-tab').forEach(t => t.classList.remove('active'));
+            document.getElementById('shop-' + id).classList.add('active');
             el.classList.add('active');
         }
 
-        function closeModals(el) {
-            document.querySelectorAll('.modal').forEach(m => m.style.display = 'none');
-            if(el) {
-                document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
-                el.classList.add('active');
-            }
-        }
-
-        function buy(n) {
+        // ЛОГИКА ПОКУПОК
+        function buyUpgrade(n) {
             let i = n - 1;
-            if (balance >= costs[i]) {
+            if(balance >= costs[i]) {
                 balance -= costs[i];
-                if (n === 1) tapPower += 2; else income += 10;
-                costs[i] *= 3; updateUI();
+                if(n===1) tapPower += 3; else income += 10;
+                costs[i] = Math.floor(costs[i] * 2.8); refresh();
             }
         }
 
-        function buySkin(id, price, color) {
-            const btn = document.getElementById('s' + id);
-            if (ownedSkins.includes(id)) {
-                document.getElementById('main-btn').style.borderColor = color;
-                alert("Скин надет!");
-                return;
-            }
-            if (balance >= price) {
-                balance -= price;
-                ownedSkins.push(id);
-                btn.innerText = "USE";
-                btn.classList.add('owned');
-                updateUI();
+        function buySkin(id, price, filterColor, auraColor) {
+            if(ownedSkins.includes(id)) { equipSkin(id, filterColor, auraColor); return; }
+            if(balance >= price) {
+                balance -= price; ownedSkins.push(id);
+                const btn = document.querySelector(`#s${id} .buy-btn`);
+                btn.innerText = 'USE'; btn.classList.add('gold');
+                refresh(); equipSkin(id, filterColor, auraColor);
             }
         }
 
-        setInterval(() => { balance += income; updateUI(); }, 1000);
+        function equipSkin(id, filterColor, auraColor) {
+            document.querySelectorAll('#shop-skins .item-card').forEach(c => c.classList.remove('equipped'));
+            document.querySelectorAll('#shop-skins .buy-btn').forEach(b => {b.classList.remove('equipped'); b.innerText = ownedSkins.includes(parseInt(b.parentElement.id.substring(1))) ? 'USE' : 'BUY';});
+            
+            document.getElementById('s' + id).classList.add('equipped');
+            const btn = document.querySelector(`#s${id} .buy-btn`);
+            btn.classList.add('equipped'); btn.innerText = 'EQUIPPED';
+            
+            document.getElementById('donald-model').style.filter = id === 0 ? 'none' : `drop-shadow(0 0 10px ${auraColor}) sepia(1) hue-rotate(${id*50}deg) brightness(1.2)`;
+        }
+
+        function buyPodium(id, price, bgStyle, borderStyle) {
+            if(ownedPodiums.includes(id)) { equipPodium(id, bgStyle, borderStyle); return; }
+            if(balance >= price) {
+                balance -= price; ownedPodiums.push(id);
+                refresh(); equipPodium(id, bgStyle, borderStyle);
+            }
+        }
+
+        function equipPodium(id, bgStyle, borderStyle) {
+            document.getElementById('pedestal').style.background = id === 0 ? 'linear-gradient(180deg, #1A4D1A 0%, #0D260D 100%)' : bgStyle;
+            document.getElementById('pedestal').style.borderColor = id === 0 ? '#2ECC71' : borderStyle;
+            // ... (аналогичная логика обновления UI для карточек пьедесталов)
+        }
+
+        setInterval(() => { balance += income; refresh(); }, 1000);
     </script>
 </body>
 </html>
