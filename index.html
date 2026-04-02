@@ -3,249 +3,199 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>Donald Golden Empire</title>
+    <title>Donald Elite Empire</title>
     <style>
         :root { 
-            --gold: #FFD700; 
-            --neon-blue: #00D2FF; 
-            --glass: rgba(255, 255, 255, 0.1);
+            --gold: #FFD700; --neon-blue: #00F2FF; --neon-purple: #BC13FE;
+            --glass: rgba(255, 255, 255, 0.07);
         }
         body { 
-            background: #00050a; color: white; font-family: 'Inter', system-ui, sans-serif; 
-            margin: 0; display: flex; flex-direction: column; align-items: center; 
-            height: 100vh; overflow: hidden;
+            background: #000; color: white; font-family: 'Segoe UI', Roboto, sans-serif; 
+            margin: 0; height: 100vh; overflow: hidden; display: flex; flex-direction: column; align-items: center;
         }
 
-        /* Анимированный фон */
-        #bg-canvas { position: fixed; top: 0; left: 0; z-index: -1; }
+        #bg-canvas { position: fixed; inset: 0; z-index: -1; opacity: 0.6; }
 
-        /* Интерфейс баланса */
-        #header { width: 100%; padding: 40px 0 20px; text-align: center; z-index: 10; }
-        #balance-container { display: flex; align-items: center; justify-content: center; gap: 10px; }
+        /* ВЕРХНЯЯ ПАНЕЛЬ */
+        #header { padding: 40px 0 10px; text-align: center; z-index: 10; }
         #balance { 
-            font-size: 64px; font-weight: 900; color: var(--gold); 
-            text-shadow: 0 0 40px rgba(255, 215, 0, 0.5); 
+            font-size: 65px; font-weight: 900; color: var(--gold); 
+            text-shadow: 0 0 30px rgba(255, 215, 0, 0.6); letter-spacing: -2px;
         }
-        .coin-icon { font-size: 50px; }
 
-        /* ЦЕНТРАЛЬНАЯ КНОПКА (SVG DONALD) */
-        #donald-wrapper {
-            position: relative; width: 280px; height: 280px;
-            display: flex; align-items: center; justify-content: center;
+        /* ДОНАЛЬД - СТИЛЬНЫЙ И ЖИВОЙ */
+        #main-target {
+            position: relative; width: 280px; height: 280px; margin-top: 20px;
             cursor: pointer; transition: transform 0.1s cubic-bezier(0.17, 0.67, 0.83, 0.67);
+            z-index: 5;
         }
-        #donald-wrapper:active { transform: scale(0.92); }
+        #main-target:active { transform: scale(0.92); }
         
-        .main-circle {
-            position: absolute; width: 100%; height: 100%;
-            background: radial-gradient(circle, #FFCC00 0%, #FF8800 100%);
-            border-radius: 50%; border: 6px solid #FFF;
-            box-shadow: 0 0 50px rgba(255, 204, 0, 0.4);
+        .aura {
+            position: absolute; inset: -15px; border-radius: 50%;
+            background: radial-gradient(circle, rgba(255,215,0,0.2) 0%, transparent 70%);
+            animation: pulse 2s infinite;
+        }
+        @keyframes pulse { 0% { transform: scale(1); opacity: 0.5; } 50% { transform: scale(1.1); opacity: 0.8; } 100% { transform: scale(1); opacity: 0.5; } }
+
+        /* МАГАЗИН (НЕОБЫЧНЫЙ ДИЗАЙН) */
+        .modal { 
+            display: none; position: fixed; inset: 0; z-index: 1000;
+            background: rgba(0,0,0,0.85); backdrop-filter: blur(25px);
+            padding: 30px 20px; animation: slideUp 0.4s cubic-bezier(0.18, 0.89, 0.32, 1.28);
+        }
+        @keyframes slideUp { from { transform: translateY(100%); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+
+        .modal-title { font-size: 32px; font-weight: 900; text-align: center; margin-bottom: 30px; color: var(--gold); text-shadow: 0 0 15px gold; }
+
+        .shop-grid { display: flex; flex-direction: column; gap: 15px; }
+        
+        .item-card {
+            background: var(--glass); border-radius: 25px; padding: 20px;
+            border: 1px solid rgba(255,255,255,0.1); display: flex; justify-content: space-between; align-items: center;
+            position: relative; overflow: hidden; transition: 0.3s;
+        }
+        .item-card::before {
+            content: ''; position: absolute; top: 0; left: 0; width: 4px; height: 100%;
+            background: var(--clr); box-shadow: 0 0 15px var(--clr);
+        }
+        .item-card:active { transform: scale(0.97); background: rgba(255,255,255,0.15); }
+
+        .card-info b { font-size: 20px; display: block; margin-bottom: 5px; }
+        .card-info span { font-size: 14px; color: var(--gold); font-weight: bold; }
+
+        .buy-btn {
+            background: var(--clr); color: #000; border: none; padding: 12px 20px; 
+            border-radius: 15px; font-weight: 900; font-size: 14px; box-shadow: 0 0 15px var(--clr);
         }
 
-        /* Энергия */
-        #energy-section { width: 85%; margin-top: 40px; text-align: center; }
-        .energy-bar { 
-            width: 100%; height: 14px; background: rgba(255,255,255,0.05); 
-            border-radius: 20px; border: 1px solid rgba(255,215,0,0.3); overflow: hidden; 
-        }
-        #energy-fill { 
-            width: 100%; height: 100%; 
-            background: linear-gradient(90deg, #FFD700, #FF4400); transition: 0.2s; 
-        }
-
-        /* НИЖНЕЕ МЕНЮ (EMOJI ICONS - ALWAYS VISIBLE) */
-        #nav-bar { 
-            position: fixed; bottom: 20px; width: 92%; height: 80px;
-            background: rgba(10, 10, 20, 0.8); backdrop-filter: blur(20px);
-            border: 1px solid rgba(255, 215, 0, 0.2); border-radius: 25px;
+        /* КНОПКИ МЕНЮ */
+        #nav { 
+            position: fixed; bottom: 25px; width: 90%; height: 75px;
+            background: var(--glass); backdrop-filter: blur(20px);
+            border-radius: 25px; border: 1px solid rgba(255,215,0,0.2);
             display: flex; justify-content: space-around; align-items: center; z-index: 100;
         }
-        .nav-btn { text-align: center; flex: 1; transition: 0.3s; opacity: 0.6; }
-        .nav-btn.active { opacity: 1; transform: translateY(-5px); }
-        .nav-btn .icon { font-size: 32px; display: block; margin-bottom: 4px; }
-        .nav-btn .label { font-size: 12px; font-weight: bold; color: #FFF; }
+        .nav-link { text-align: center; opacity: 0.5; transition: 0.3s; cursor: pointer; flex: 1; }
+        .nav-link.active { opacity: 1; transform: translateY(-5px); color: var(--gold); }
+        .nav-link i { font-size: 24px; display: block; margin-bottom: 3px; font-style: normal; }
 
-        /* МОДАЛЬНЫЕ ОКНА */
-        .modal { 
-            display: none; position: fixed; inset: 0; 
-            background: rgba(0,0,0,0.95); backdrop-filter: blur(15px);
-            z-index: 1000; padding: 30px 20px;
-            animation: slideUp 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+        /* ТАП-ЭФФЕКТЫ */
+        .tap-coin {
+            position: absolute; pointer-events: none; font-weight: 900; font-size: 32px;
+            color: #FFF; text-shadow: 0 0 15px gold; z-index: 1000;
+            animation: floatUp 0.7s ease-out forwards;
         }
-        @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
-
-        .modal-h { font-size: 36px; color: var(--gold); text-align: center; margin-bottom: 30px; text-shadow: 0 0 20px gold; }
-        
-        .item-card { 
-            background: var(--glass); border: 1px solid rgba(255,215,0,0.2);
-            border-radius: 20px; padding: 20px; margin-bottom: 15px;
-            display: flex; justify-content: space-between; align-items: center;
-        }
-        .item-card b { font-size: 22px; color: #FFF; }
-        .item-card p { margin: 5px 0 0; color: var(--gold); font-size: 14px; font-weight: 600; }
-
-        .buy-btn { 
-            background: linear-gradient(180deg, #FFD700, #FF8800); color: #000;
-            border: none; padding: 14px 24px; border-radius: 14px; font-weight: 800;
-        }
-
-        .back-btn { 
-            width: 100%; padding: 20px; background: rgba(255,255,255,0.05); 
-            border: 1px solid #333; border-radius: 18px; color: #888; font-weight: bold; margin-top: 10px;
-        }
-
-        /* Текст при тапе */
-        .tap-text {
-            position: absolute; color: #FFF; font-weight: 900; font-size: 30px;
-            pointer-events: none; z-index: 1000; animation: tapFloat 0.7s ease-out forwards;
-        }
-        @keyframes tapFloat { 
-            0% { opacity: 1; transform: translateY(0) scale(1); } 
-            100% { opacity: 0; transform: translateY(-150px) scale(1.5); } 
-        }
+        @keyframes floatUp { 0% { opacity: 1; transform: translateY(0); } 100% { opacity: 0; transform: translateY(-150px) rotate(20deg); } }
     </style>
 </head>
 <body>
     <canvas id="bg-canvas"></canvas>
 
     <div id="header">
-        <div id="balance-container">
-            <span class="coin-icon">💰</span>
-            <span id="balance">0</span>
-        </div>
-        <div style="color: #555; font-weight: bold; margin-top: 5px;">PROFIT: +<span id="income-val">0</span>/sec</div>
+        <div id="balance">💰 <span id="val">0</span></div>
+        <div style="opacity: 0.4; font-size: 12px; letter-spacing: 2px;">AUTO-MINING: +<span id="ps">0</span>/SEC</div>
     </div>
 
-    <div id="donald-wrapper">
-        <div class="main-circle"></div>
-        <svg width="200" height="200" viewBox="0 0 100 100" style="z-index: 10;">
-            <path d="M50 15c-15 0-25 10-25 25 0 8 5 15 10 20l-5 15 15-5c5 3 10 5 15 5 15 0 25-10 25-25S65 15 50 15z" fill="#FFF"/>
-            <circle cx="40" cy="35" r="5" fill="#000"/>
-            <circle cx="60" cy="35" r="5" fill="#000"/>
-            <path d="M35 50q15 15 30 0" fill="none" stroke="#FF4400" stroke-width="4" stroke-linecap="round"/>
-            <path d="M45 10 L55 10 L50 0 Z" fill="#222"/>
+    <div id="main-target">
+        <div class="aura"></div>
+        <svg viewBox="0 0 100 100" style="width:100%; height:100%; z-index:2; position:relative;">
+            <circle cx="50" cy="50" r="45" fill="white" stroke="#FFD700" stroke-width="2"/>
+            <path d="M20 50 Q50 90 80 50" fill="#FF8800" stroke="#000" stroke-width="1"/>
+            <ellipse cx="40" cy="40" rx="4" ry="7" fill="black"/>
+            <ellipse cx="60" cy="40" rx="4" ry="7" fill="black"/>
+            <path d="M45 15 L55 15 L50 5 Z" fill="#222"/>
         </svg>
     </div>
 
-    <div id="energy-section">
-        <div style="margin-bottom: 12px; font-weight: 900; letter-spacing: 1px;">⚡ <span id="cur-e">1000</span> / 1000</div>
-        <div class="energy-bar"><div id="energy-fill"></div></div>
+    <div id="nav">
+        <div class="nav-link active" onclick="showPage('main', this)"><i>🏠</i><b>Главная</b></div>
+        <div class="nav-link" onclick="showPage('shop', this)"><i>🚀</i><b>Магазин</b></div>
+        <div class="nav-link" onclick="showPage('vip', this)"><i>💎</i><b>VIP</b></div>
     </div>
 
-    <div id="nav-bar">
-        <div class="nav-btn active" onclick="closeAll(this)">
-            <span class="icon">🏠</span><span class="label">Home</span>
+    <div id="shop" class="modal">
+        <div class="modal-title">UPGRADE HUB</div>
+        <div class="shop-grid">
+            <div class="item-card" style="--clr: var(--neon-blue);">
+                <div class="card-info"><b>Hyper Click</b><span>Цена: <span id="c1">100</span> 💰</span></div>
+                <button class="buy-btn" onclick="buy(1)">UP</button>
+            </div>
+            <div class="item-card" style="--clr: var(--neon-purple);">
+                <div class="card-info"><b>Quantum Farm</b><span>Цена: <span id="c2">500</span> 💰</span></div>
+                <button class="buy-btn" onclick="buy(2)">UP</button>
+            </div>
+            <div class="item-card" style="--clr: var(--gold);">
+                <div class="card-info"><b>Gold Magnet</b><span>Цена: <span id="c3">2500</span> 💰</span></div>
+                <button class="buy-btn" onclick="buy(3)">UP</button>
+            </div>
         </div>
-        <div class="nav-btn" onclick="openMod('mining', this)">
-            <span class="icon">🚀</span><span class="label">Mining</span>
-        </div>
-        <div class="nav-btn" onclick="openMod('stars', this)">
-            <span class="icon">💎</span><span class="label">Stars</span>
-        </div>
+        <button onclick="showPage('main')" style="width: 100%; margin-top: 30px; background: none; border: 1px solid #333; color: #555; padding: 15px; border-radius: 15px; font-weight: bold;">НАЗАД</button>
     </div>
 
-    <div id="mining" class="modal">
-        <h1 class="modal-h">MINING HUB</h1>
-        <div class="item-card">
-            <div><b>Super Click</b><p>Price: <span id="cost1">100</span></p></div>
-            <button class="buy-btn" onclick="upgrade(1)">UPGRADE</button>
+    <div id="vip" class="modal">
+        <div class="modal-title">ELITE STORE</div>
+        <div class="item-card" style="--clr: #FF0055;">
+            <div class="card-info"><b>1,000,000 МОНЕТ</b><span>Мгновенно</span></div>
+            <button class="buy-btn" style="background: #0088CC; color: #fff;" onclick="alert('Stars...')">500 ⭐</button>
         </div>
-        <div class="item-card">
-            <div><b>Auto Bot</b><p>Price: <span id="cost2">500</span></p></div>
-            <button class="buy-btn" onclick="upgrade(2)">UPGRADE</button>
-        </div>
-        <button class="back-btn" onclick="closeAll()">CLOSE</button>
-    </div>
-
-    <div id="stars" class="modal">
-        <h1 class="modal-h">STAR STORE</h1>
-        <div class="item-card" style="border-color: var(--neon-blue);">
-            <div><b>100k COINS</b><p>Best for start</p></div>
-            <button class="buy-btn" style="background: var(--neon-blue);" onclick="alert('Stars...')">250 ⭐</button>
-        </div>
-        <div class="item-card" style="border-color: #FF00FF;">
-            <div><b>1M COINS</b><p>Legendary Pack</p></div>
-            <button class="buy-btn" style="background: #FF00FF;" onclick="alert('Stars...')">1500 ⭐</button>
-        </div>
-        <button class="back-btn" onclick="closeAll()">CLOSE</button>
+        <button onclick="showPage('main')" style="width: 100%; margin-top: 30px; background: none; border: 1px solid #333; color: #555; padding: 15px; border-radius: 15px; font-weight: bold;">ЗАКРЫТЬ</button>
     </div>
 
     <script>
-        let score = 0, energy = 1000, tapPower = 1, income = 0;
-        let costs = [100, 500];
+        let balance = 0, income = 0, tapPower = 1, costs = [100, 500, 2500];
 
-        // Анимированный фон (частицы)
+        // ФОНОВЫЕ ЭФФЕКТЫ
         const canvas = document.getElementById('bg-canvas');
         const ctx = canvas.getContext('2d');
         canvas.width = window.innerWidth; canvas.height = window.innerHeight;
-        let particles = Array.from({length: 40}, () => ({
-            x: Math.random() * canvas.width,
-            y: Math.random() * canvas.height,
-            s: Math.random() * 2 + 1
-        }));
+        let particles = Array.from({length: 40}, () => ({x: Math.random()*canvas.width, y: Math.random()*canvas.height, s: Math.random()*2+1}));
 
-        function draw() {
+        function animate() {
             ctx.clearRect(0,0,canvas.width,canvas.height);
-            ctx.fillStyle = "rgba(255, 215, 0, 0.15)";
+            ctx.fillStyle = "rgba(255, 215, 0, 0.2)";
             particles.forEach(p => {
                 ctx.beginPath(); ctx.arc(p.x, p.y, p.s, 0, Math.PI*2); ctx.fill();
                 p.y += p.s * 0.5; if(p.y > canvas.height) p.y = -10;
             });
-            requestAnimationFrame(draw);
+            requestAnimationFrame(animate);
         }
-        draw();
+        animate();
 
-        function sync() {
-            document.getElementById('balance').innerText = Math.floor(score);
-            document.getElementById('cur-e').innerText = energy;
-            document.getElementById('energy-fill').style.width = (energy/10) + '%';
-            document.getElementById('income-val').innerText = income;
-            document.getElementById('cost1').innerText = costs[0];
-            document.getElementById('cost2').innerText = costs[1];
+        function refresh() {
+            document.getElementById('val').innerText = Math.floor(balance);
+            document.getElementById('ps').innerText = income;
+            document.getElementById('c1').innerText = costs[0];
+            document.getElementById('c2').innerText = costs[1];
+            document.getElementById('c3').innerText = costs[2];
         }
 
-        document.getElementById('donald-wrapper').addEventListener('pointerdown', (e) => {
-            if (energy < tapPower) return;
-            score += tapPower; energy -= tapPower;
-            
-            const t = document.createElement('div');
-            t.className = 'tap-text'; t.innerText = `+${tapPower}`;
-            t.style.left = e.clientX + 'px'; t.style.top = e.clientY + 'px';
-            document.body.appendChild(t);
-            setTimeout(() => t.remove(), 700);
-            sync();
+        document.getElementById('main-target').addEventListener('pointerdown', (e) => {
+            balance += tapPower;
+            let p = document.createElement('div'); p.className = 'tap-coin';
+            p.innerText = '+' + tapPower; p.style.left = e.clientX + 'px'; p.style.top = e.clientY + 'px';
+            document.body.appendChild(p); setTimeout(() => p.remove(), 700);
+            refresh();
         });
 
-        function openMod(id, el) {
-            document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
-            el.classList.add('active');
-            document.getElementById(id).style.display = 'block';
-        }
-
-        function closeAll(el) {
+        function showPage(id, el) {
             document.querySelectorAll('.modal').forEach(m => m.style.display = 'none');
-            if(el) {
-                document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
-                el.classList.add('active');
-            }
+            if(id !== 'main') document.getElementById(id).style.display = 'block';
+            if(el) { document.querySelectorAll('.nav-link').forEach(b => b.classList.remove('active')); el.classList.add('active'); }
         }
 
-        function upgrade(n) {
+        function buy(n) {
             let i = n - 1;
-            if (score >= costs[i]) {
-                score -= costs[i];
-                if(n === 1) tapPower += 2; else income += 15;
-                costs[i] = Math.floor(costs[i] * 2.8);
-                sync();
+            if(balance >= costs[i]) {
+                balance -= costs[i];
+                if(n===1) tapPower += 3;
+                else if(n===2) income += 10;
+                else income += 50;
+                costs[i] = Math.floor(costs[i] * 2.8); refresh();
             }
         }
 
-        setInterval(() => { 
-            score += income; 
-            if(energy < 1000) energy = Math.min(1000, energy + 4); 
-            sync(); 
-        }, 1000);
+        setInterval(() => { balance += income; refresh(); }, 1000);
     </script>
 </body>
 </html>
