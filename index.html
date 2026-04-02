@@ -3,167 +3,160 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>Donald Gold Empire</title>
+    <title>Donald Golden Empire</title>
     <style>
-        :root { --gold: #FFD700; --accent: #00F2FF; }
+        :root { --gold: #FFD700; --neon: #00F2FF; --glass: rgba(255, 255, 255, 0.08); }
         body { 
-            background: #000; color: white; font-family: 'Segoe UI', Roboto, sans-serif;
-            margin: 0; height: 100vh; overflow: hidden; display: flex; flex-direction: column;
+            background: radial-gradient(circle at center, #001a33 0%, #000 100%); 
+            color: white; font-family: -apple-system, Roboto, sans-serif; 
+            margin: 0; height: 100vh; overflow: hidden; display: flex; flex-direction: column; align-items: center;
         }
 
-        /* Анимированный фон с частицами */
-        #canvas { position: fixed; inset: 0; z-index: -1; background: radial-gradient(circle at center, #001a33 0%, #000 100%); }
+        #bg-canvas { position: fixed; inset: 0; z-index: -1; opacity: 0.6; }
 
-        /* Интерфейс */
-        header { padding: 40px 20px 0; text-align: center; z-index: 10; }
-        #balance-container { display: flex; align-items: center; justify-content: center; gap: 15px; }
-        #balance-container img { width: 50px; filter: drop-shadow(0 0 15px var(--gold)); }
-        #balance { font-size: 72px; font-weight: 900; color: var(--gold); text-shadow: 0 0 30px rgba(255,215,0,0.5); }
-        .stats { font-size: 14px; opacity: 0.6; text-transform: uppercase; letter-spacing: 2px; margin-top: 5px; }
+        /* ИНТЕРФЕЙС БАЛАНСА */
+        #header { padding: 40px 0 10px; text-align: center; z-index: 10; }
+        #balance { font-size: 65px; font-weight: 900; color: var(--gold); text-shadow: 0 0 30px rgba(255, 215, 0, 0.6); }
 
-        /* Игровая сцена */
-        #game-scene {
-            position: relative; flex: 1; display: flex; align-items: center; justify-content: center;
-            perspective: 1000px;
+        /* ТАП-ЗОНА С ДОНАЛЬДОМ */
+        #tap-target {
+            position: relative; width: 300px; height: 300px; margin-top: 20px;
+            cursor: pointer; display: flex; align-items: center; justify-content: center; z-index: 5;
         }
         
+        /* ПЬЕДЕСТАЛ (ТРАВА + ДЕРЕВО) */
         #ground {
-            position: absolute; bottom: 0; width: 150%; height: 25vh;
-            background: radial-gradient(ellipse at top, #2d5a27 0%, #0a1a05 100%);
-            border-top: 4px solid #4CAF50; border-radius: 50% 50% 0 0;
-            box-shadow: 0 -20px 50px rgba(0,255,0,0.15);
+            position: absolute; bottom: -20px; width: 380px; height: 130px;
+            background: linear-gradient(180deg, #1A4D1A 0%, #0D260D 100%);
+            border-radius: 50% 50% 0 0; border-top: 5px solid #2ECC71;
+            box-shadow: 0 -10px 40px rgba(0,255,0,0.4);
         }
 
-        #tree {
-            position: absolute; right: 10%; bottom: 18vh; width: 150px; height: 350px;
-            background: url('https://cdn-icons-png.flaticon.com/512/490/490406.png') center/contain no-repeat;
-            filter: drop-shadow(0 0 20px rgba(0,0,0,0.5));
+        /* SVG ДОНАЛЬД (РЕАЛИСТИЧНЫЙ И ПОДВИЖНЫЙ) */
+        svg#donald-scene { 
+            position: relative; width: 100%; height: 100%; pointer-events: none;
+            transition: transform 0.08s cubic-bezier(0.18, 0.89, 0.32, 1.28);
+        }
+        #tap-target:active svg#donald-scene { transform: scale(0.85); } /* СЖАТИЕ */
+
+        /* ЭФФЕКТ ЧАСТИЦ ПРИ КЛИКЕ */
+        .tap-particle {
+            position: absolute; pointer-events: none; font-size: 30px;
+            color: #FFF; text-shadow: 0 0 15px gold; z-index: 1000;
+            animation: explode 0.7s ease-out forwards;
+        }
+        @keyframes explode {
+            0% { transform: translate(0,0) scale(1.2); opacity: 1; }
+            100% { transform: translate(var(--x), var(--y)) scale(0.2); opacity: 0; }
         }
 
-        #donald {
-            width: 280px; height: 280px; z-index: 5; cursor: pointer;
-            transition: transform 0.1s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-            filter: drop-shadow(0 20px 40px rgba(0,0,0,0.6));
-            -webkit-user-drag: none;
+        /* МАГАЗИНЫ И МЕНЮ (GLASSMORPHISM) */
+        .modal { 
+            display: none; position: fixed; inset: 0; z-index: 1000;
+            background: rgba(0,0,0,0.9); backdrop-filter: blur(20px);
+            padding: 30px 20px; animation: slideUp 0.3s ease-out;
         }
-        #donald:active { transform: scale(0.9) rotate(-3deg); }
+        @keyframes slideUp { from { transform: translateY(100%); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
 
-        /* Навигация (Glassmorphism) */
-        nav {
-            position: fixed; bottom: 30px; left: 5%; width: 90%; height: 80px;
-            background: rgba(255, 255, 255, 0.05); backdrop-filter: blur(20px);
-            border-radius: 25px; border: 1px solid rgba(255, 255, 255, 0.1);
+        .item-card {
+            background: var(--glass); border-radius: 20px; padding: 15px;
+            border: 1px solid rgba(255,255,255,0.08); display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;
+        }
+        .buy-btn { background: var(--gold); color: #000; border: none; padding: 12px 20px; border-radius: 12px; font-weight: 900; }
+
+        #nav { 
+            position: fixed; bottom: 25px; width: 90%; height: 75px;
+            background: var(--glass); backdrop-filter: blur(20px);
+            border-radius: 25px; border: 1px solid rgba(255,255,255,0.08);
             display: flex; justify-content: space-around; align-items: center; z-index: 100;
         }
-        .nav-item { text-align: center; opacity: 0.5; transition: 0.3s; flex: 1; cursor: pointer; }
-        .nav-item.active { opacity: 1; color: var(--gold); transform: translateY(-5px); }
-        .nav-item i { font-size: 24px; display: block; margin-bottom: 4px; }
-
-        /* Окна (Модалки) */
-        .modal {
-            display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.9);
-            z-index: 1000; padding: 40px 20px; animation: fadeIn 0.3s ease;
-        }
-        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-        
-        .card {
-            background: rgba(255,255,255,0.05); border-radius: 20px; padding: 20px;
-            margin-bottom: 15px; display: flex; justify-content: space-between; align-items: center;
-            border: 1px solid rgba(255,255,255,0.1);
-        }
-        .buy-btn {
-            background: var(--gold); color: black; border: none; padding: 12px 20px;
-            border-radius: 15px; font-weight: 800; font-size: 14px; cursor: pointer;
-        }
-
-        /* Эффект клика */
-        .click-value {
-            position: absolute; pointer-events: none; color: white; font-weight: 900;
-            font-size: 40px; text-shadow: 0 0 15px gold; animation: fly 0.8s ease-out forwards;
-        }
-        @keyframes fly { 0% { opacity: 1; transform: translateY(0); } 100% { opacity: 0; transform: translateY(-200px) scale(1.5); } }
+        .nav-link { text-align: center; opacity: 0.5; transition: 0.3s; cursor: pointer; flex: 1; }
+        .nav-link.active { opacity: 1; transform: translateY(-5px); color: var(--gold); }
     </style>
 </head>
 <body>
-    <canvas id="canvas"></canvas>
-    
-    <header>
-        <div class="stats">Auto-Profit: +<span id="ps">0</span>/sec</div>
-        <div id="balance-container">
-            <img src="https://cdn-icons-png.flaticon.com/512/2311/2311992.png" alt="coin">
-            <span id="balance">0</span>
-        </div>
-    </header>
+    <canvas id="bg-canvas"></canvas>
 
-    <div id="game-scene">
-        <div id="ground"></div>
-        <div id="tree"></div>
-        <img id="donald" src="https://www.pngarts.com/files/3/Donald-Duck-PNG-Transparent-Image.png" alt="Donald" onclick="tap(event)">
+    <div id="header">
+        <div id="balance">💰 <span id="val">0</span></div>
+        <div style="opacity: 0.4; font-size: 11px;">AUTO-MINING: +<span id="ps">0</span>/SEC</div>
     </div>
 
-    <nav>
-        <div class="nav-item active" onclick="openScreen('game')">🏠<br>Main</div>
-        <div class="nav-item" onclick="openScreen('shop')">🚀<br>Empire</div>
-        <div class="nav-item" onclick="openScreen('vip')">💎<br>VIP</div>
-    </nav>
+    <div id="tap-target" onclick="tap(event)">
+        <div id="ground"></div>
+        <svg id="donald-scene" viewBox="0 0 200 200">
+            <path d="M160 200 Q150 150 160 50 Q180 20 160 0" stroke="#5D4037" stroke-width="12" fill="none"/>
+            <circle cx="160" cy="15" r="25" fill="#2E7D32"/>
+            
+            <g id="body" filter="drop-shadow(0 0 10px gold)">
+                <ellipse cx="100" cy="130" rx="35" ry="45" fill="white" stroke="black" stroke-width="1.5"/>
+                <circle cx="100" cy="80" r="25" fill="white" stroke="black" stroke-width="1.5"/>
+                <ellipse cx="90" cy="75" rx="3" ry="6" fill="black"/>
+                <ellipse cx="110" cy="75" rx="3" ry="6" fill="black"/>
+                <path d="M80 95 Q100 115 120 95 Z" fill="#FF8800" stroke="black" stroke-width="1"/>
+                <path d="M90 60 L110 60 L100 50 Z" fill="#0044FF" stroke="black" stroke-width="1"/>
+                <path d="M100 175 L90 220 L110 220 Z" fill="#FF8800" stroke="black" stroke-width="1"/>
+            </g>
+        </svg>
+    </div>
+
+    <div id="nav">
+        <div class="nav-link active" onclick="show('game')">🏠<span>Главная</span></div>
+        <div class="nav-link" onclick="show('shop')">🚀<span>Империя</span></div>
+        <div class="nav-item" onclick="show('skins')">👕<span>Скины</span></div>
+        <div class="nav-link" onclick="show('stars')">💎<span>Донат</span></div>
+    </div>
 
     <div id="shop" class="modal">
-        <h1 style="color:var(--gold); text-align:center;">MARKET</h1>
-        <div class="card">
-            <div><b>Double Tap</b><br><small>Level <span id="lvl1">1</span></small></div>
-            <button class="buy-btn" onclick="buy(1)">Cost: <span id="c1">100</span></button>
+        <h1 style="color:var(--gold); text-align:center;">EMPIRE HUB</h1>
+        <div class="item-card" style="border-color: #00F2FF;">
+            <div><b>Квантовый Клик</b><span>+2/тап (Цена: <span id="c1">100</span>💰)</span></div>
+            <button class="buy-btn" onclick="buy(1)">UP</button>
         </div>
-        <div class="card">
-            <div><b>Gold Mining</b><br><small>Level <span id="lvl2">1</span></small></div>
-            <button class="buy-btn" onclick="buy(2)">Cost: <span id="c2">500</span></button>
+        <div class="item-card" style="border-color: #BC13FE;">
+            <div><b>Авто Майнер</b><span>+10/сек (Цена: <span id="c2">500</span>💰)</span></div>
+            <button class="buy-btn" onclick="buy(2)">UP</button>
         </div>
-        <button onclick="openScreen('game')" style="width:100%; padding:20px; background:none; border:1px solid #333; color:white; border-radius:20px;">BACK</button>
+        <button onclick="show('game')" style="width: 100%; padding: 15px; background: none; border: none; color: #555;">НАЗАД</button>
     </div>
 
     <script>
-        let score = 0, income = 0, power = 1, costs = [100, 500];
+        let score = 0, tapPower = 1, auto = 0, costs = [100, 500];
 
-        // Canvas Анимация (Золотые частицы)
-        const cvs = document.getElementById('canvas');
-        const ctx = cvs.getContext('2d');
-        cvs.width = window.innerWidth; cvs.height = window.innerHeight;
-        let particles = Array.from({length: 50}, () => ({
-            x: Math.random() * cvs.width,
-            y: Math.random() * cvs.height,
-            s: Math.random() * 2 + 1,
-            o: Math.random()
-        }));
-
-        function draw() {
-            ctx.clearRect(0, 0, cvs.width, cvs.height);
-            ctx.fillStyle = "rgba(255, 215, 0, 0.3)";
-            particles.forEach(p => {
-                ctx.beginPath(); ctx.arc(p.x, p.y, p.s, 0, Math.PI*2); ctx.fill();
-                p.y += p.s; if(p.y > cvs.height) p.y = -10;
-            });
-            requestAnimationFrame(draw);
+        // ЗОЛОТОЙ ДОЖДЬ НА ФОНЕ
+        const canvas = document.getElementById('bg-canvas');
+        const ctx = canvas.getContext('2d');
+        canvas.width = window.innerWidth; canvas.height = window.innerHeight;
+        let rain = Array.from({length: 40}, () => ({x: Math.random()*canvas.width, y: Math.random()*canvas.height, s: Math.random()*2+1}));
+        
+        function animateBg() {
+            ctx.clearRect(0,0,canvas.width,canvas.height);
+            ctx.fillStyle = "rgba(255, 215, 0, 0.15)";
+            rain.forEach(p => { ctx.font = "20px serif"; ctx.fillText("💰", p.x, p.y); p.y += p.s; if(p.y > canvas.height) p.y = -20; });
+            requestAnimationFrame(animateBg);
         }
-        draw();
+        animateBg();
 
-        function tap(e) {
-            score += power; updateUI();
-            const val = document.createElement('div');
-            val.className = 'click-value';
-            val.innerText = '+' + power;
-            val.style.left = e.clientX + 'px';
-            val.style.top = e.clientY + 'px';
-            document.body.appendChild(val);
-            setTimeout(() => val.remove(), 800);
-        }
-
-        function updateUI() {
-            document.getElementById('balance').innerText = Math.floor(score);
-            document.getElementById('ps').innerText = income;
+        function sync() {
+            document.getElementById('val').innerText = Math.floor(score);
+            document.getElementById('ps').innerText = auto;
             document.getElementById('c1').innerText = costs[0];
             document.getElementById('c2').innerText = costs[1];
         }
 
-        function openScreen(id) {
+        // ТАП С РАЗЛЕТАЮЩИМИСЯ ЧАСТИЦАМИ
+        function tap(e) {
+            score += tapPower; sync();
+            for(let i=0; i<6; i++) {
+                let div = document.createElement('div'); div.className = 'tap-particle'; div.innerText = '💰';
+                div.style.left = e.clientX + 'px'; div.style.top = e.clientY + 'px';
+                div.style.setProperty('--x', (Math.random()-0.5)*300 + 'px');
+                div.style.setProperty('--y', (Math.random()-0.5)*300 + 'px');
+                document.body.appendChild(div); setTimeout(() => div.remove(), 700);
+            }
+        }
+
+        function show(id) {
             document.querySelectorAll('.modal').forEach(m => m.style.display = 'none');
             if(id !== 'game') document.getElementById(id).style.display = 'block';
         }
@@ -171,14 +164,12 @@
         function buy(n) {
             let i = n - 1;
             if(score >= costs[i]) {
-                score -= costs[i];
-                if(n === 1) power += 2; else income += 5;
-                costs[i] = Math.floor(costs[i] * 1.8);
-                updateUI();
+                score -= costs[i]; if(n===1) tapPower += 2; else auto += 10;
+                costs[i] *= 3; sync();
             }
         }
 
-        setInterval(() => { score += income; updateUI(); }, 1000);
+        setInterval(() => { score += auto; sync(); }, 1000);
     </script>
 </body>
 </html>
