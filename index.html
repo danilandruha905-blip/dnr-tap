@@ -5,111 +5,126 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <title>Donald Combat</title>
     <style>
-        :root { --gold: #ffd700; --bg: #001a33; }
+        :root { --gold: #ffd700; --blue: #004488; }
         body { 
             background: radial-gradient(circle, #003366 0%, #000 100%); 
-            color: white; font-family: sans-serif; margin: 0; 
-            display: flex; flex-direction: column; align-items: center; 
+            color: white; font-family: 'Arial Black', sans-serif; 
+            margin: 0; display: flex; flex-direction: column; align-items: center; 
             height: 100vh; overflow: hidden; user-select: none;
         }
-        #header { width: 100%; padding: 20px; text-align: center; background: rgba(0,0,0,0.8); border-bottom: 2px solid var(--gold); }
-        #balance { font-size: 50px; font-weight: bold; color: var(--gold); text-shadow: 0 0 15px gold; }
+        #header { width: 100%; padding: 20px; text-align: center; background: rgba(0,0,0,0.8); border-bottom: 3px solid var(--gold); box-sizing: border-box; }
+        #balance { font-size: 50px; font-weight: bold; color: var(--gold); text-shadow: 0 0 20px gold; margin-top: 5px; }
         
-        /* ГЛАВНЫЙ ГЕРОЙ - ТЕПЕРЬ С ГАРАНТИЕЙ */
-        #coin-wrapper { margin-top: 50px; position: relative; }
         #donald-btn {
-            width: 250px; height: 250px; border-radius: 50%;
-            background: #ffd700; 
+            width: 270px; height: 270px; border-radius: 50%;
+            /* Ссылка на качественного Дональда Дака */
+            background: url('https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/poke-ball.png') center/contain no-repeat, 
+                        url('https://img.icons8.com/color/512/donald-duck.png') center/85% no-repeat,
+                        radial-gradient(circle, #ffd700 0%, #cc9900 100%);
             border: 8px solid #fff; box-shadow: 0 0 50px var(--gold);
-            display: flex; align-items: center; justify-content: center;
-            font-size: 150px; cursor: pointer; transition: transform 0.05s;
+            margin-top: 50px; cursor: pointer; transition: transform 0.05s;
             -webkit-tap-highlight-color: transparent;
         }
-        #donald-btn:active { transform: scale(0.9); }
-        #donald-btn::after { content: '🦆'; } /* Дональд через эмодзи - он всегда загрузится! */
+        #donald-btn:active { transform: scale(0.92); }
 
         .fly {
-            position: absolute; font-size: 40px; pointer-events: none; z-index: 100;
+            position: absolute; pointer-events: none; z-index: 100;
+            display: flex; align-items: center; gap: 5px;
             animation: flyUp 0.7s ease-out forwards;
         }
+        .fly img { width: 40px; height: 40px; }
+        .fly span { color: var(--gold); font-size: 28px; font-weight: bold; }
+
         @keyframes flyUp {
             0% { opacity: 1; transform: translateY(0); }
             100% { opacity: 0; transform: translateY(-300px) scale(0.5); }
         }
 
-        #energy-box { width: 80%; margin-top: 30px; text-align: center; }
-        #bar { width: 100%; height: 15px; background: #222; border-radius: 10px; overflow: hidden; border: 1px solid #555; }
-        #fill { width: 100%; height: 100%; background: linear-gradient(90deg, gold, orange); transition: 0.2s; }
-
-        #shop-ui { 
-            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
-            background: #000; z-index: 200; padding: 20px; box-sizing: border-box;
-        }
-        .btn-buy { background: var(--gold); color: #000; padding: 15px; border-radius: 10px; font-weight: bold; margin-top: 20px; text-align: center; }
-        
         #footer { position: fixed; bottom: 0; width: 100%; background: #000; padding: 15px 0; display: flex; justify-content: space-around; border-top: 2px solid var(--gold); }
+        .nav-item { text-align: center; color: #888; font-size: 12px; cursor: pointer; }
+        .nav-item.active { color: var(--gold); }
+
+        #energy-box { width: 85%; margin-top: 30px; text-align: center; }
+        #bar { width: 100%; height: 15px; background: #222; border-radius: 10px; overflow: hidden; border: 1px solid #555; }
+        #fill { width: 100%; height: 100%; background: linear-gradient(90deg, #ffd700, #ff8800); transition: 0.2s; }
+
+        #shop-ui { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #001a33; z-index: 200; padding: 20px; box-sizing: border-box; }
+        .buy-card { background: rgba(255,215,0,0.1); border: 1px solid var(--gold); padding: 15px; border-radius: 15px; margin-top: 15px; display: flex; justify-content: space-between; align-items: center; }
+        .buy-btn { background: var(--gold); color: #000; border: none; padding: 10px 20px; border-radius: 10px; font-weight: bold; }
     </style>
 </head>
 <body>
+
     <div id="header">
-        <div style="font-size: 14px; color: #aaa;">ПРИБЫЛЬ: +<span id="ps">0</span>/сек</div>
+        <div style="font-size: 14px; color: #aaa;">ПРИБЫЛЬ В СЕКУНДУ: +<span id="ps">0</span></div>
         <div id="balance">💰 <span id="val">0</span></div>
     </div>
 
-    <div id="coin-wrapper">
-        <div id="donald-btn"></div>
-    </div>
+    <div id="donald-btn"></div>
 
     <div id="energy-box">
-        <div style="margin-bottom:5px;">⚡ <span id="e">1000</span> / 1000</div>
+        <div style="margin-bottom: 5px;">⚡ <span id="e">1000</span> / 1000</div>
         <div id="bar"><div id="fill"></div></div>
     </div>
 
     <div id="footer">
-        <div onclick="closeShop()">🏠 Биржа</div>
-        <div onclick="openShop()">🚀 Майнинг</div>
+        <div class="nav-item active" onclick="closeShop()">🏠<br>Биржа</div>
+        <div class="nav-item" onclick="openShop()">🚀<br>Майнинг</div>
+        <div class="nav-item">👥<br>Друзья</div>
+        <div class="nav-item">💎<br>Airdrop</div>
     </div>
 
     <div id="shop-ui">
-        <h1 style="color:var(--gold)">МАГАЗИН</h1>
-        <div class="btn-buy" onclick="buy(100, 1)">УЛУЧШИТЬ ТАП (+1) - 100 💰</div>
-        <div class="btn-buy" onclick="buy(500, 'p')">АВТО-ДОХОД (+5) - 500 💰</div>
-        <div class="btn-buy" onclick="closeShop()" style="background:#555; color:#fff">НАЗАД</div>
+        <h1 style="color:var(--gold)">МАЙНИНГ</h1>
+        <div class="buy-card">
+            <div><b>Super Tap</b><br><small>+1 к клику</small><br>Цена: <span id="c1">100</span></div>
+            <button class="buy-btn" onclick="buy(1)">КУПИТЬ</button>
+        </div>
+        <div class="buy-card">
+            <div><b>Donald Farm</b><br><small>+5 в сек.</small><br>Цена: <span id="c2">500</span></div>
+            <button class="buy-btn" onclick="buy(2)">КУПИТЬ</button>
+        </div>
+        <button onclick="closeShop()" style="margin-top: 20px; background: #555; color: white; width: 100%; padding: 15px; border-radius: 10px; border: none;">НАЗАД</button>
     </div>
 
     <script>
-        let s = 0, e = 1000, p = 1, ps = 0;
+        let score = 0, energy = 1000, tap = 1, income = 0, cost1 = 100, cost2 = 500;
         const val = document.getElementById('val'), en = document.getElementById('e'), fill = document.getElementById('fill');
 
         document.getElementById('donald-btn').addEventListener('pointerdown', (ev) => {
-            if (e < p) return;
-            s += p; e -= p; update();
-            const f = document.createElement('div');
-            f.className = 'fly'; f.style.left = ev.clientX + 'px'; f.style.top = ev.clientY + 'px';
-            f.innerText = '🦆'; document.body.appendChild(f);
-            setTimeout(() => f.remove(), 700);
+            if (energy < tap) return;
+            score += tap; energy -= tap; update();
+            const fly = document.createElement('div');
+            fly.className = 'fly';
+            fly.style.left = ev.clientX + 'px'; fly.style.top = ev.clientY + 'px';
+            fly.innerHTML = `<img src="https://img.icons8.com/color/96/donald-duck.png"> <span>+${tap}</span>`;
+            document.body.appendChild(fly);
+            setTimeout(() => fly.remove(), 700);
         });
 
         function openShop() { document.getElementById('shop-ui').style.display = 'block'; }
         function closeShop() { document.getElementById('shop-ui').style.display = 'none'; }
-        
-        function buy(cost, type) {
-            if (s >= cost) {
-                s -= cost;
-                if (type === 'p') ps += 5; else p += 1;
-                update(); closeShop();
-            } else alert('Мало денег!');
+
+        function buy(type) {
+            if (type === 1 && score >= cost1) {
+                score -= cost1; tap++; cost1 *= 2;
+            } else if (type === 2 && score >= cost2) {
+                score -= cost2; income += 5; cost2 *= 2;
+            } else { alert('Мало монет!'); return; }
+            update();
         }
 
         function update() {
-            val.innerText = Math.floor(s);
-            en.innerText = e;
-            fill.style.width = (e/10) + '%';
-            document.getElementById('ps').innerText = ps;
+            val.innerText = Math.floor(score);
+            en.innerText = energy;
+            fill.style.width = (energy/10) + '%';
+            document.getElementById('ps').innerText = income;
+            document.getElementById('c1').innerText = cost1;
+            document.getElementById('c2').innerText = cost2;
         }
 
         setInterval(() => {
-            s += ps; if (e < 1000) e = Math.min(1000, e + 2);
+            score += income; if (energy < 1000) energy = Math.min(1000, energy + 3);
             update();
         }, 1000);
     </script>
