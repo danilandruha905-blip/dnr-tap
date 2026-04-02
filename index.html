@@ -3,186 +3,89 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>Donald Elite Combat</title>
+    <title>Donald Golden Empire V24</title>
     <style>
-        :root { --gold: #FFD700; --neon-blue: #00F2FF; --glass: rgba(255, 255, 255, 0.08); }
+        :root { --gold: #FFD700; --blue: #00F2FF; }
         body { 
-            background: radial-gradient(circle at center, #001a33 0%, #000 100%); 
-            color: white; font-family: 'Arial Black', sans-serif; 
+            background: #000; color: white; font-family: sans-serif; 
             margin: 0; height: 100vh; overflow: hidden; display: flex; flex-direction: column; align-items: center;
         }
-
-        #bg-canvas { position: fixed; inset: 0; z-index: -1; opacity: 0.5; }
-
-        /* ВЕРХНЯЯ ПАНЕЛЬ */
-        #header { padding: 40px 0 10px; text-align: center; z-index: 10; }
-        #balance { font-size: 60px; font-weight: 900; color: var(--gold); text-shadow: 0 0 30px gold; }
-        #profit { color: #888; font-size: 14px; text-transform: uppercase; letter-spacing: 2px; }
-
-        /* ДОНАЛЬД - ГЛАВНАЯ КНОПКА (SVG - ВСЕГДА РАБОТАЕТ) */
-        #main-target {
-            position: relative; width: 280px; height: 280px; margin-top: 30px;
-            cursor: pointer; transition: transform 0.08s cubic-bezier(0.17, 0.67, 0.83, 0.67);
-            z-index: 5;
-        }
-        #main-target:active { transform: scale(0.92); } /* СЖАТИЕ */
+        #bg { position: fixed; inset: 0; z-index: -1; background: radial-gradient(circle, #001a33, #000); }
+        #balance { font-size: 60px; font-weight: 900; color: var(--gold); margin-top: 40px; text-shadow: 0 0 20px gold; }
         
-        .aura {
-            position: absolute; inset: -15px; border-radius: 50%;
-            background: radial-gradient(circle, rgba(255,215,0,0.1) 0%, transparent 70%);
-            animation: pulse 1.5s infinite;
+        /* НОВЫЙ ДОНАЛЬД (SVG) */
+        #btn {
+            position: relative; width: 280px; height: 280px; margin-top: 20px;
+            cursor: pointer; transition: 0.1s; z-index: 5;
         }
-        @keyframes pulse { 0% { opacity: 0.4; } 50% { opacity: 0.8; } 100% { opacity: 0.4; } }
-
-        /* МАГАЗИН И ДОНАТ (СТИЛЬНЫЕ ОКНА) */
+        #btn:active { transform: scale(0.9); }
+        
+        /* СТИЛЬНЫЙ МАГАЗИН */
         .modal { 
-            display: none; position: fixed; inset: 0; z-index: 1000;
-            background: rgba(0,0,0,0.92); backdrop-filter: blur(20px);
-            padding: 30px 20px; animation: slideUp 0.3s ease-out;
+            display: none; position: fixed; inset: 0; z-index: 100;
+            background: rgba(0,0,0,0.95); backdrop-filter: blur(20px); padding: 20px;
         }
-        @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
-
-        .modal h1 { color: var(--gold); text-align: center; font-size: 32px; margin-bottom: 30px; text-shadow: 0 0 15px gold; }
-
-        .shop-grid { display: flex; flex-direction: column; gap: 15px; }
-        
-        .item-card {
-            background: var(--glass); border-radius: 20px; padding: 20px;
-            border: 1px solid rgba(255,215,0,0.2); display: flex; justify-content: space-between; align-items: center;
+        .card { 
+            background: rgba(255,255,255,0.1); border: 1px solid var(--gold);
+            border-radius: 20px; padding: 15px; margin-bottom: 10px;
+            display: flex; justify-content: space-between; align-items: center;
         }
-        .item-card b { font-size: 20px; color: white; }
-        .item-card p { margin: 5px 0 0; color: var(--gold); font-size: 14px; font-weight: bold; }
-
-        .buy-btn {
-            background: linear-gradient(180deg, var(--gold), #ff8800); color: #000; border: none; 
-            padding: 12px 20px; border-radius: 12px; font-weight: 900; font-size: 14px;
-        }
+        .buy-btn { background: var(--gold); border: none; padding: 10px 20px; border-radius: 10px; font-weight: bold; }
 
         /* МЕНЮ */
-        #nav { 
-            position: fixed; bottom: 20px; width: 92%; height: 75px;
-            background: var(--glass); backdrop-filter: blur(20px);
-            border-radius: 25px; border: 1px solid rgba(255,215,0,0.2);
-            display: flex; justify-content: space-around; align-items: center; z-index: 100;
+        #menu { 
+            position: fixed; bottom: 20px; width: 90%; height: 70px;
+            background: rgba(255,255,255,0.1); border-radius: 20px;
+            display: flex; justify-content: space-around; align-items: center;
         }
-        .nav-btn { text-align: center; opacity: 0.6; transition: 0.3s; cursor: pointer; flex: 1; }
-        .nav-btn.active { opacity: 1; transform: translateY(-5px); color: var(--gold); }
-        .nav-btn i { font-size: 24px; display: block; margin-bottom: 4px; font-style: normal; }
-        .nav-btn b { font-size: 10px; font-weight: bold; }
-
-        /* ТАП-ЭФФЕКТЫ */
-        .tap-part {
-            position: absolute; pointer-events: none; font-weight: 900; font-size: 30px;
-            color: #FFF; text-shadow: 0 0 15px gold; z-index: 1000;
-            animation: float 0.7s ease-out forwards;
-        }
-        @keyframes float { 0% { opacity: 1; transform: translateY(0); } 100% { opacity: 0; transform: translateY(-130px); } }
     </style>
 </head>
 <body>
-    <canvas id="bg-canvas"></canvas>
+    <div id="bg"></div>
+    <div id="balance">💰 <span id="score">0</span></div>
 
-    <div id="header">
-        <div id="balance">💰 <span id="val">0</span></div>
-        <div id="profit">ПРИБЫЛЬ: +<span id="ps">0</span>/sec</div>
-    </div>
-
-    <div id="main-target">
-        <div class="aura"></div>
-        <svg viewBox="0 0 100 100" style="width:100%; height:100%; z-index:2; position:relative;">
-            <circle cx="50" cy="50" r="45" fill="white" stroke="#FFD700" stroke-width="2"/>
-            <path d="M20 50 Q50 90 80 50" fill="#FF8800" stroke="#000" stroke-width="1"/>
-            <ellipse cx="40" cy="40" rx="4" ry="7" fill="black"/>
-            <ellipse cx="60" cy="40" rx="4" ry="7" fill="black"/>
-            <path d="M45 15 L55 15 L50 5 Z" fill="#222"/>
+    <div id="btn" onclick="tap(event)">
+        <svg viewBox="0 0 100 100" style="width:100%; height:100%;">
+            <circle cx="50" cy="50" r="48" fill="white" stroke="gold" stroke-width="2"/>
+            <path d="M20 55 Q50 95 80 55" fill="#ff8800" stroke="black"/>
+            <ellipse cx="35" cy="40" rx="5" ry="8" fill="black"/>
+            <ellipse cx="65" cy="40" rx="5" ry="8" fill="black"/>
+            <path d="M40 15 L60 15 L50 5 Z" fill="blue"/>
         </svg>
     </div>
 
-    <div id="nav">
-        <div class="nav-btn active" onclick="closeAll(this)"><i>🏠</i><b>Главная</b></div>
-        <div class="nav-btn" onclick="openMod('shop', this)"><i>🚀</i><b>Магазин</b></div>
-        <div class="nav-btn" onclick="openMod('stars', this)"><i>💎</i><b>VIP</b></div>
+    <div id="menu">
+        <div onclick="openMod('main')">🏠 Главная</div>
+        <div onclick="openMod('shop')">🚀 Маг</div>
+        <div onclick="openMod('vip')">💎 VIP</div>
     </div>
 
     <div id="shop" class="modal">
-        <h1>МАГАЗИН</h1>
-        <div class="shop-grid">
-            <div class="item-card">
-                <div><b>Супер Клик</b><p>Цена: <span id="c1">100</span></p></div>
-                <button class="buy-btn" onclick="buy(1)">UP</button>
-            </div>
-            <div class="item-card">
-                <div><b>Авто Фарм</b><p>Цена: <span id="c2">500</span></p></div>
-                <button class="buy-btn" onclick="buy(2)">UP</button>
-            </div>
+        <h2 style="color:gold; text-align:center;">МАГАЗИН</h2>
+        <div class="card">
+            <div><b>Супер Клик</b><br><small>Цена: 100</small></div>
+            <button class="buy-btn" onclick="alert('Куплено!')">UP</button>
         </div>
-        <button onclick="closeAll()" style="width: 100%; margin-top: 30px; background: none; border: 1px solid #333; color: #555; padding: 15px; border-radius: 15px; font-weight: bold;">НАЗАД</button>
-    </div>
-
-    <div id="stars" class="modal">
-        <h1>ELITE STORE</h1>
-        <div class="item-card" style="border-color: var(--neon-blue);">
-            <div><b>1,000,000 МОНЕТ</b><p>Whale Pack</p></div>
-            <button class="buy-btn" style="background: var(--neon-blue);" onclick="alert('Stars...')">1000 ⭐</button>
-        </div>
-        <button onclick="closeAll()" style="width: 100%; margin-top: 30px; background: none; border: 1px solid #333; color: #555; padding: 15px; border-radius: 15px; font-weight: bold;">ЗАКРЫТЬ</button>
+        <button onclick="openMod('main')" style="width:100%; color:white; background:none; border:none; margin-top:20px;">ЗАКРЫТЬ</button>
     </div>
 
     <script>
-        let score = 0, income = 0, tap = 1, costs = [100, 500];
-
-        // ЗОЛОТОЙ ДОЖДЬ
-        const canvas = document.getElementById('bg-canvas');
-        const ctx = canvas.getContext('2d');
-        canvas.width = window.innerWidth; canvas.height = window.innerHeight;
-        let particles = Array.from({length: 30}, () => ({x: Math.random()*canvas.width, y: Math.random()*canvas.height, s: Math.random()*2+1}));
-
-        function drawRain() {
-            ctx.clearRect(0,0,canvas.width,canvas.height);
-            ctx.fillStyle = "rgba(255, 215, 0, 0.2)";
-            particles.forEach(p => {
-                ctx.beginPath(); ctx.arc(p.x, p.y, p.s, 0, Math.PI*2); ctx.fill();
-                p.y += p.s; if(p.y > canvas.height) p.y = -10;
-            });
-            requestAnimationFrame(drawRain);
+        let s = 0;
+        function tap(e) {
+            s++; document.getElementById('score').innerText = s;
+            // Частицы
+            let p = document.createElement('div');
+            p.innerText = "💰"; p.style.position = "absolute";
+            p.style.left = e.clientX + 'px'; p.style.top = e.clientY + 'px';
+            p.style.fontSize = "30px"; p.style.transition = "0.5s";
+            document.body.appendChild(p);
+            setTimeout(() => { p.style.transform = "translateY(-100px)"; p.style.opacity = "0"; }, 10);
+            setTimeout(() => p.remove(), 500);
         }
-        drawRain();
-
-        function sync() {
-            document.getElementById('val').innerText = Math.floor(score);
-            document.getElementById('ps').innerText = income;
-            document.getElementById('c1').innerText = costs[0];
-            document.getElementById('c2').innerText = costs[1];
-        }
-
-        document.getElementById('main-target').addEventListener('pointerdown', (e) => {
-            score += tap;
-            let p = document.createElement('div'); p.className = 'tap-part';
-            p.innerText = '+' + tap; p.style.left = e.clientX + 'px'; p.style.top = e.clientY + 'px';
-            document.body.appendChild(p); setTimeout(() => p.remove(), 700);
-            sync();
-        });
-
-        function openMod(id, el) {
+        function openMod(id) {
             document.querySelectorAll('.modal').forEach(m => m.style.display = 'none');
-            document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
-            document.getElementById(id).style.display = 'block'; el.classList.add('active');
+            if(id !== 'main') document.getElementById(id).style.display = 'block';
         }
-
-        function closeAll(el) {
-            document.querySelectorAll('.modal').forEach(m => m.style.display = 'none');
-            if(el) { document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active')); el.classList.add('active'); }
-        }
-
-        function buy(n) {
-            let i = n - 1;
-            if(score >= costs[i]) {
-                score -= costs[i]; if(n===1) tap += 3; else income += 10;
-                costs[i] = Math.floor(costs[i] * 2.8); sync();
-            }
-        }
-
-        setInterval(() => { score += income; sync(); }, 1000);
     </script>
 </body>
 </html>
