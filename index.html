@@ -3,89 +3,166 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>Donald Golden Empire V24</title>
+    <title>Donald Golden King</title>
     <style>
-        :root { --gold: #FFD700; --blue: #00F2FF; }
+        :root { --gold: #FFD700; --neon: #00F2FF; }
         body { 
-            background: #000; color: white; font-family: sans-serif; 
-            margin: 0; height: 100vh; overflow: hidden; display: flex; flex-direction: column; align-items: center;
+            background: radial-gradient(circle at center, #010c17 0%, #000 100%); 
+            color: white; font-family: 'Arial Black', sans-serif; margin: 0; 
+            height: 100vh; overflow: hidden; display: flex; flex-direction: column; align-items: center;
         }
-        #bg { position: fixed; inset: 0; z-index: -1; background: radial-gradient(circle, #001a33, #000); }
-        #balance { font-size: 60px; font-weight: 900; color: var(--gold); margin-top: 40px; text-shadow: 0 0 20px gold; }
+
+        /* АНИМИРОВАННЫЙ ФОН */
+        #stars { position: fixed; inset: 0; z-index: -1; pointer-events: none; }
+
+        /* ИНТЕРФЕЙС */
+        #header { margin-top: 40px; text-align: center; }
+        #balance { font-size: 60px; color: var(--gold); text-shadow: 0 0 25px gold; line-height: 1; }
+        .profit-text { font-size: 14px; color: #888; text-transform: uppercase; margin-top: 5px; }
+
+        /* ЦЕНТРАЛЬНЫЙ ДОНАЛЬД */
+        #main-button {
+            position: relative; width: 280px; height: 280px; margin-top: 30px;
+            cursor: pointer; transition: transform 0.05s; z-index: 10;
+        }
+        #main-button:active { transform: scale(0.92); }
+
+        /* МАГАЗИН И МОДАЛКИ */
+        .page { 
+            display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.95); 
+            backdrop-filter: blur(15px); z-index: 100; padding: 30px 20px;
+            animation: fadeIn 0.3s ease;
+        }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
         
-        /* НОВЫЙ ДОНАЛЬД (SVG) */
-        #btn {
-            position: relative; width: 280px; height: 280px; margin-top: 20px;
-            cursor: pointer; transition: 0.1s; z-index: 5;
-        }
-        #btn:active { transform: scale(0.9); }
-        
-        /* СТИЛЬНЫЙ МАГАЗИН */
-        .modal { 
-            display: none; position: fixed; inset: 0; z-index: 100;
-            background: rgba(0,0,0,0.95); backdrop-filter: blur(20px); padding: 20px;
-        }
         .card { 
-            background: rgba(255,255,255,0.1); border: 1px solid var(--gold);
-            border-radius: 20px; padding: 15px; margin-bottom: 10px;
+            background: rgba(255,255,255,0.05); border: 1px solid rgba(255,215,0,0.3);
+            border-radius: 20px; padding: 20px; margin-bottom: 15px;
             display: flex; justify-content: space-between; align-items: center;
         }
-        .buy-btn { background: var(--gold); border: none; padding: 10px 20px; border-radius: 10px; font-weight: bold; }
+        .btn-buy { background: var(--gold); border: none; padding: 12px 20px; border-radius: 12px; font-weight: 900; }
 
-        /* МЕНЮ */
-        #menu { 
-            position: fixed; bottom: 20px; width: 90%; height: 70px;
-            background: rgba(255,255,255,0.1); border-radius: 20px;
+        /* НИЖНЕЕ МЕНЮ */
+        #navbar { 
+            position: fixed; bottom: 20px; width: 90%; height: 75px;
+            background: rgba(255,255,255,0.08); border-radius: 25px;
             display: flex; justify-content: space-around; align-items: center;
+            border: 1px solid rgba(255,215,0,0.2); backdrop-filter: blur(10px);
         }
+        .nav-item { text-align: center; opacity: 0.5; transition: 0.3s; cursor: pointer; flex: 1; }
+        .nav-item.active { opacity: 1; color: var(--gold); transform: translateY(-5px); }
+        .nav-item span { display: block; font-size: 10px; margin-top: 4px; }
+
+        /* ТАП-ЭФФЕКТЫ */
+        .tap-effect {
+            position: absolute; pointer-events: none; font-size: 32px; font-weight: 900;
+            color: #fff; text-shadow: 0 0 10px gold; animation: moveUp 0.6s ease-out forwards;
+        }
+        @keyframes moveUp { 0% { opacity: 1; transform: translateY(0); } 100% { opacity: 0; transform: translateY(-120px); } }
     </style>
 </head>
 <body>
-    <div id="bg"></div>
-    <div id="balance">💰 <span id="score">0</span></div>
+    <canvas id="stars"></canvas>
 
-    <div id="btn" onclick="tap(event)">
-        <svg viewBox="0 0 100 100" style="width:100%; height:100%;">
-            <circle cx="50" cy="50" r="48" fill="white" stroke="gold" stroke-width="2"/>
-            <path d="M20 55 Q50 95 80 55" fill="#ff8800" stroke="black"/>
-            <ellipse cx="35" cy="40" rx="5" ry="8" fill="black"/>
-            <ellipse cx="65" cy="40" rx="5" ry="8" fill="black"/>
-            <path d="M40 15 L60 15 L50 5 Z" fill="blue"/>
+    <div id="header">
+        <div id="balance">💰 <span id="count">0</span></div>
+        <div class="profit-text">Прибыль: +<span id="ps">0</span>/сек</div>
+    </div>
+
+    <div id="main-button" onclick="handleTap(event)">
+        <svg viewBox="0 0 100 100" style="filter: drop-shadow(0 0 15px rgba(255,215,0,0.4));">
+            <circle cx="50" cy="50" r="48" fill="#FFF" stroke="#FFD700" stroke-width="2"/>
+            <path d="M25 45 Q50 5 75 45" fill="#FFF" stroke="#000" stroke-width="0.5"/>
+            <ellipse cx="40" cy="42" rx="4" ry="7" fill="#000"/>
+            <ellipse cx="60" cy="42" rx="4" ry="7" fill="#000"/>
+            <path d="M30 55 Q50 90 70 55 L50 65 Z" fill="#FF8800"/>
+            <path d="M45 12 L55 12 L50 2 Z" fill="#0044FF"/>
         </svg>
     </div>
 
-    <div id="menu">
-        <div onclick="openMod('main')">🏠 Главная</div>
-        <div onclick="openMod('shop')">🚀 Маг</div>
-        <div onclick="openMod('vip')">💎 VIP</div>
+    <div id="navbar">
+        <div class="nav-item active" onclick="nav('home', this)">🏠<span>Главная</span></div>
+        <div class="nav-item" onclick="nav('shop', this)">🚀<span>Магазин</span></div>
+        <div class="nav-item" onclick="nav('vip', this)">💎<span>VIP</span></div>
     </div>
 
-    <div id="shop" class="modal">
-        <h2 style="color:gold; text-align:center;">МАГАЗИН</h2>
+    <div id="shop" class="page">
+        <h1 style="color:var(--gold); text-align:center;">SHOP</h1>
         <div class="card">
-            <div><b>Супер Клик</b><br><small>Цена: 100</small></div>
-            <button class="buy-btn" onclick="alert('Куплено!')">UP</button>
+            <div><b>Супер Тап</b><br><small>Цена: <span id="c1">100</span></small></div>
+            <button class="btn-buy" onclick="buy(1)">КУПИТЬ</button>
         </div>
-        <button onclick="openMod('main')" style="width:100%; color:white; background:none; border:none; margin-top:20px;">ЗАКРЫТЬ</button>
+        <div class="card">
+            <div><b>Золотая Шахта</b><br><small>Цена: <span id="c2">500</span></small></div>
+            <button class="btn-buy" onclick="buy(2)">КУПИТЬ</button>
+        </div>
+        <button onclick="nav('home')" style="width:100%; padding:15px; background:none; border:none; color:#555;">ЗАКРЫТЬ</button>
+    </div>
+
+    <div id="vip" class="page">
+        <h1 style="color:var(--gold); text-align:center;">VIP STARS</h1>
+        <div class="card" style="border-color: #00F2FF;">
+            <div><b>1,000,000 МОНЕТ</b><br><small>Elite Pack</small></div>
+            <button class="btn-buy" style="background:#00F2FF;" onclick="alert('Stars!')">500 ⭐</button>
+        </div>
+        <button onclick="nav('home')" style="width:100%; padding:15px; background:none; border:none; color:#555;">ЗАКРЫТЬ</button>
     </div>
 
     <script>
-        let s = 0;
-        function tap(e) {
-            s++; document.getElementById('score').innerText = s;
-            // Частицы
-            let p = document.createElement('div');
-            p.innerText = "💰"; p.style.position = "absolute";
-            p.style.left = e.clientX + 'px'; p.style.top = e.clientY + 'px';
-            p.style.fontSize = "30px"; p.style.transition = "0.5s";
-            document.body.appendChild(p);
-            setTimeout(() => { p.style.transform = "translateY(-100px)"; p.style.opacity = "0"; }, 10);
-            setTimeout(() => p.remove(), 500);
+        let score = 0, tap = 1, auto = 0, cost1 = 100, cost2 = 500;
+
+        // ЗОЛОТОЙ ДОЖДЬ
+        const cvs = document.getElementById('stars');
+        const ctx = cvs.getContext('2d');
+        cvs.width = window.innerWidth; cvs.height = window.innerHeight;
+        let particles = Array.from({length: 40}, () => ({x: Math.random()*cvs.width, y: Math.random()*cvs.height, r: Math.random()*2+1, s: Math.random()*2}));
+
+        function draw() {
+            ctx.clearRect(0,0,cvs.width,cvs.height);
+            ctx.fillStyle = "rgba(255,215,0,0.3)";
+            particles.forEach(p => {
+                ctx.beginPath(); ctx.arc(p.x, p.y, p.r, 0, Math.PI*2); ctx.fill();
+                p.y += p.s; if(p.y > cvs.height) p.y = -5;
+            });
+            requestAnimationFrame(draw);
         }
-        function openMod(id) {
-            document.querySelectorAll('.modal').forEach(m => m.style.display = 'none');
-            if(id !== 'main') document.getElementById(id).style.display = 'block';
+        draw();
+
+        function sync() {
+            document.getElementById('count').innerText = Math.floor(score);
+            document.getElementById('ps').innerText = auto;
+            document.getElementById('c1').innerText = cost1;
+            document.getElementById('c2').innerText = cost2;
         }
+
+        function handleTap(e) {
+            score += tap;
+            let div = document.createElement('div');
+            div.className = 'tap-effect';
+            div.innerText = '+' + tap;
+            div.style.left = e.clientX + 'px';
+            div.style.top = e.clientY + 'px';
+            document.body.appendChild(div);
+            setTimeout(() => div.remove(), 600);
+            sync();
+        }
+
+        function nav(id, el) {
+            document.querySelectorAll('.page').forEach(p => p.style.display = 'none');
+            if(id !== 'home') document.getElementById(id).style.display = 'block';
+            if(el) {
+                document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
+                el.classList.add('active');
+            }
+        }
+
+        function buy(n) {
+            if(n===1 && score >= cost1) { score -= cost1; tap += 2; cost1 *= 3; }
+            if(n===2 && score >= cost2) { score -= cost2; auto += 5; cost2 *= 3; }
+            sync();
+        }
+
+        setInterval(() => { score += auto; sync(); }, 1000);
     </script>
 </body>
 </html>
