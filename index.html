@@ -3,307 +3,189 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>Donald Golden Empire</title>
+    <title>Donald Elite Empire</title>
     <style>
-        :root { 
-            --gold: #FFD700; --neon-blue: #00F2FF; --neon-purple: #BC13FE; --neon-green: #39FF14;
-            --glass: rgba(255, 255, 255, 0.08); --border-glass: rgba(255,255,255,0.1);
-        }
+        :root { --gold: #FFD700; --blue: #00F2FF; --bg: #00050a; }
         body { 
-            background: #000; color: white; font-family: 'Segoe UI', Roboto, sans-serif; 
-            margin: 0; height: 100vh; overflow: hidden; display: flex; flex-direction: column; align-items: center;
+            background: var(--bg); color: white; font-family: -apple-system, sans-serif; 
+            margin: 0; height: 100vh; overflow: hidden; display: flex; flex-direction: column;
         }
 
-        #bg-canvas { position: fixed; inset: 0; z-index: -1; opacity: 0.6; }
+        /* Живой фон с частицами */
+        #canvas { position: fixed; inset: 0; z-index: -1; }
 
-        /* ИНТЕРФЕЙС БАЛАНСА */
-        #header { padding: 30px 0 10px; text-align: center; z-index: 10; width: 90%; }
-        #balance { 
-            font-size: 60px; font-weight: 900; color: var(--gold); 
-            text-shadow: 0 0 30px rgba(255, 215, 0, 0.6); letter-spacing: -2px;
-        }
+        /* Шапка */
+        header { padding: 40px 0 10px; text-align: center; z-index: 10; }
+        #balance { font-size: 64px; font-weight: 900; color: var(--gold); text-shadow: 0 0 40px rgba(255,215,0,0.5); }
+        .stats-bar { font-size: 12px; opacity: 0.6; text-transform: uppercase; letter-spacing: 2px; }
 
-        /* ТАП-ЗОНА (НОВАЯ КОНЦЕПЦИЯ) */
-        #tap-zone {
-            position: relative; width: 100%; height: 50vh; margin-top: 10px;
-            cursor: pointer; display: flex; align-items: flex-end; justify-content: center; z-index: 5;
+        /* Игровая сцена */
+        #game-scene {
+            position: relative; flex: 1; display: flex; align-items: center; justify-content: center;
+            cursor: pointer; perspective: 1000px;
         }
         
-        /* ПЬЕДЕСТАЛ / ЛОКАЦИЯ (ПО УМОЛЧАНИЮ - ТРАВА) */
-        #pedestal {
-            position: absolute; bottom: 0; width: 350px; height: 120px;
-            background: linear-gradient(180deg, #1A4D1A 0%, #0D260D 100%);
-            border-radius: 50% 50% 0 0 / 100% 100% 0 0;
-            border-top: 4px solid #2ECC71; box-shadow: 0 10px 40px rgba(0,0,0,0.8);
-            transition: 0.5s cubic-bezier(0.18, 0.89, 0.32, 1.28);
+        #landscape {
+            position: absolute; bottom: 50px; width: 120%; height: 180px;
+            background: radial-gradient(ellipse at top, #2d5a27 0%, #0a1a05 100%);
+            border-top: 5px solid #4CAF50; border-radius: 50% 50% 0 0;
+            box-shadow: 0 -20px 50px rgba(0,255,0,0.1);
         }
 
-        /* ДЕРЕВО И ДОНАЛЬД (SVG - ГАРАНТИЯ ОТОБРАЖЕНИЯ) */
-        #donald-scene { position: relative; width: 200px; height: 300px; margin-bottom: 20px; pointer-events: none; transition: transform 0.05s; }
-        #tap-zone:active #donald-scene { transform: scale(0.95); }
-        
-        /* ГЛОБАЛЬНЫЙ МАГАЗИН (НЕОБЫЧНЫЙ ДИЗАЙН) */
-        .modal { 
-            display: none; position: fixed; inset: 0; z-index: 1000;
-            background: rgba(0,0,0,0.85); backdrop-filter: blur(25px);
-            padding: 30px 20px; animation: slideUp 0.4s cubic-bezier(0.18, 0.89, 0.32, 1.28);
+        #tree {
+            position: absolute; right: 15%; bottom: 120px; width: 120px; height: 300px;
+            background: url('https://cdn-icons-png.flaticon.com/512/490/490406.png') center/contain no-repeat;
+            filter: drop-shadow(0 0 20px rgba(0,0,0,0.8));
         }
-        @keyframes slideUp { from { transform: translateY(100%); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
 
-        .modal-title { font-size: 32px; font-weight: 900; text-align: center; margin-bottom: 20px; color: var(--gold); text-shadow: 0 0 15px gold; }
-
-        /* ПЕРЕКЛЮЧАТЕЛЬ МАГАЗИНОВ */
-        .shop-nav { display: flex; gap: 10px; justify-content: center; margin-bottom: 25px; }
-        .shop-tab { background: var(--glass); border: 1px solid var(--border-glass); color: white; padding: 12px 20px; border-radius: 15px; font-weight: bold; flex: 1; text-align: center; }
-        .shop-tab.active { background: var(--gold); color: black; box-shadow: 0 0 15px gold; }
-
-        .shop-content { display: none; flex-direction: column; gap: 15px; height: 70vh; overflow-y: auto; padding-right: 5px; }
-        .shop-content.active { display: flex; }
-
-        /* КАРТОЧКИ ТОВАРОВ / СКИНОВ */
-        .item-card {
-            background: var(--glass); border-radius: 20px; padding: 15px;
-            border: 1px solid var(--border-glass); display: flex; justify-content: space-between; align-items: center;
-            position: relative; overflow: hidden; transition: 0.3s;
+        #donald {
+            position: relative; width: 220px; height: 220px; z-index: 5;
+            transition: transform 0.05s cubic-bezier(0.17, 0.67, 0.83, 0.67);
+            filter: drop-shadow(0 10px 30px rgba(0,0,0,0.5));
         }
-        .item-card::before { content: ''; position: absolute; inset: -1px; background: linear-gradient(135deg, transparent 50%, rgba(255,255,255,0.05)); }
-        .item-card.active { border-color: var(--neon); }
-        .item-card.equipped { background: rgba(0,255,0,0.1); border-color: var(--neon-green); }
+        #game-scene:active #donald { transform: scale(0.9) rotate(-3deg); }
 
-        .card-preview { width: 50px; height: 50px; border-radius: 12px; display: flex; align-items: center; justify-content: center; background: rgba(255,255,255,0.05); }
-        .card-info { flex: 1; margin-left: 15px; }
-        .card-info b { font-size: 18px; color: white; display: block; }
-        .card-info span { font-size: 14px; color: var(--gold); font-weight: bold; }
-
-        .buy-btn {
-            background: var(--neon); color: black; border: none; padding: 10px 18px; 
-            border-radius: 12px; font-weight: 900; font-size: 13px;
+        /* Магазин и меню */
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.03); backdrop-filter: blur(25px);
+            border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 30px;
         }
-        .buy-btn.gold { background: var(--gold); }
-        .buy-btn.equipped { background: var(--neon-green); color: black; }
 
-        /* МЕНЮ */
-        #nav { 
-            position: fixed; bottom: 25px; width: 90%; height: 75px;
-            background: var(--glass); backdrop-filter: blur(20px);
-            border-radius: 25px; border: 1px solid var(--border-glass);
+        #nav {
+            position: fixed; bottom: 30px; left: 5%; width: 90%; height: 80px;
             display: flex; justify-content: space-around; align-items: center; z-index: 100;
         }
-        .nav-link { text-align: center; opacity: 0.5; transition: 0.3s; cursor: pointer; flex: 1; }
-        .nav-link.active { opacity: 1; transform: translateY(-5px); color: var(--gold); }
-        .nav-link span { font-size: 11px; font-weight: bold; display: block; margin-top: 3px; }
+        .nav-btn { text-align: center; opacity: 0.5; transition: 0.3s; flex: 1; }
+        .nav-btn.active { opacity: 1; color: var(--gold); transform: translateY(-5px); }
+        .nav-btn i { font-size: 28px; display: block; }
 
-        /* ТАП-ЭФФЕКТЫ */
-        .tap-coin {
-            position: absolute; pointer-events: none; font-weight: 900; font-size: 32px;
-            color: #FFF; text-shadow: 0 0 15px gold; z-index: 1000;
-            animation: floatUp 0.7s ease-out forwards;
+        .modal {
+            display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.9);
+            z-index: 1000; padding: 40px 20px; overflow-y: auto;
         }
-        @keyframes floatUp { 0% { opacity: 1; transform: translateY(0); } 100% { opacity: 0; transform: translateY(-150px) rotate(20deg); } }
+        .item-card {
+            background: rgba(255,255,255,0.05); border-radius: 20px; padding: 20px;
+            margin-bottom: 15px; display: flex; justify-content: space-between; align-items: center;
+            border: 1px solid rgba(255,255,255,0.05);
+        }
+        .btn-buy {
+            background: var(--gold); color: black; border: none; padding: 12px 20px;
+            border-radius: 15px; font-weight: 800; font-size: 14px;
+        }
+
+        /* Эффект клика */
+        .click-ani {
+            position: absolute; pointer-events: none; color: white; font-weight: 900;
+            font-size: 40px; text-shadow: 0 0 10px gold; animation: fly 0.8s ease-out forwards;
+        }
+        @keyframes fly { 0% { opacity: 1; transform: translateY(0); } 100% { opacity: 0; transform: translateY(-200px) scale(1.5); } }
     </style>
 </head>
 <body>
-    <canvas id="bg-canvas"></canvas>
-
-    <div id="header">
+    <canvas id="canvas"></canvas>
+    
+    <header>
+        <div class="stats-bar">Auto-Profit: +<span id="ps">0</span>/sec</div>
         <div id="balance">💰 <span id="val">0</span></div>
-        <div style="opacity: 0.4; font-size: 12px; letter-spacing: 2px;">PROFIT: +<span id="ps">0</span>/SEC</div>
+    </header>
+
+    <div id="game-scene" onclick="tap(event)">
+        <div id="landscape"></div>
+        <div id="tree"></div>
+        <img id="donald" src="https://www.pngarts.com/files/3/Donald-Duck-PNG-Transparent-Image.png" alt="Donald">
     </div>
 
-    <div id="tap-zone" onclick="handleTap(event)">
-        <div id="pedestal"></div>
-        <div id="donald-scene">
-            <svg viewBox="0 0 200 300" style="width:100%; height:100%;">
-                <path d="M160 300 Q150 200 160 100 Q180 50 160 0" stroke="#5D4037" stroke-width="15" fill="none"/>
-                <g id="donald-model">
-                    <ellipse cx="100" cy="150" rx="35" ry="45" fill="white" stroke="black"/>
-                    <circle cx="100" cy="100" r="25" fill="white" stroke="black"/>
-                    <ellipse cx="90" cy="95" rx="3" ry="6" fill="black"/>
-                    <ellipse cx="110" cy="95" rx="3" ry="6" fill="black"/>
-                    <path d="M80 115 Q100 135 120 115 Z" fill="#FF8800" stroke="black"/>
-                    <path d="M90 75 L110 75 L100 65 Z" fill="#0044FF"/>
-                    <path d="M100 195 L90 230 L110 230 Z" fill="#FF8800"/>
-                </g>
-            </svg>
-        </div>
+    <div id="nav" class="glass-panel">
+        <div class="nav-btn active" onclick="show('game')">🏠<br>Main</div>
+        <div class="nav-btn" onclick="show('shop')">🚀<br>Empire</div>
+        <div class="nav-btn" onclick="show('skins')">👕<br>Skins</div>
     </div>
 
-    <div id="nav">
-        <div class="nav-link active" onclick="showPage('main', this)">📊<span>Stats</span></div>
-        <div class="nav-link" onclick="showPage('shop-hub', this)">🚀<span>Empire</span></div>
-        <div class="nav-link" onclick="showPage('stars', this)">💎<span>Donate</span></div>
+    <div id="shop" class="modal">
+        <h1 style="color:var(--gold); text-align:center;">EMPIRE UPGRADES</h1>
+        <div class="item-card">
+            <div><b>Super Tap</b><br><small>Level <span id="lvl1">1</span></small></div>
+            <button class="btn-buy" onclick="buy(1)">Cost: <span id="c1">100</span></button>
+        </div>
+        <div class="item-card">
+            <div><b>Gold Mine</b><br><small>Level <span id="lvl2">1</span></small></div>
+            <button class="btn-buy" onclick="buy(2)">Cost: <span id="c2">500</span></button>
+        </div>
+        <button onclick="show('game')" style="width:100%; padding:20px; border-radius:20px; background:none; color:#555; border:1px solid #333;">BACK</button>
     </div>
 
-    <div id="shop-hub" class="modal">
-        <div class="modal-title">EMPIRE HUB</div>
-        
-        <div class="shop-nav">
-            <div class="shop-tab active" onclick="switchShopTab('upgrades', this)">Mining</div>
-            <div class="shop-tab" onclick="switchShopTab('skins', this)">Skins</div>
-            <div class="shop-tab" onclick="switchShopTab('podiums', this)">Podiums</div>
-        </div>
-
-        <div id="shop-upgrades" class="shop-content active">
-            <div class="item-card" style="--neon: var(--neon-blue);">
-                <div class="card-info"><b>Hyper Click</b><span>+2 / tap (Cost: <span id="c1">100</span>)</span></div>
-                <button class="buy-btn gold" onclick="buyUpgrade(1)">UP</button>
-            </div>
-            <div class="item-card" style="--neon: var(--neon-purple);">
-                <div class="card-info"><b>Auto Farm</b><span>+10 / sec (Cost: <span id="c2">500</span>)</span></div>
-                <button class="buy-btn gold" onclick="buyUpgrade(2)">UP</button>
-            </div>
-        </div>
-
-        <div id="shop-skins" class="shop-content">
-            <div class="item-card equipped" id="s0" style="--neon: var(--neon-green);">
-                <div class="card-preview">🦆</div>
-                <div class="card-info"><b>Base Duck</b><span>Equipped</span></div>
-                <button class="buy-btn equipped" onclick="equipSkin(0)">USE</button>
-            </div>
-            <div class="item-card" id="s1" style="--neon: #555;">
-                <div class="card-preview">🕶️</div>
-                <div class="card-info"><b>Cyber Duck</b><span>Cost: 1,000</span></div>
-                <button class="buy-btn" onclick="buySkin(1, 1000, '#555', '#00f2ff')">BUY</button>
-            </div>
-            <div class="item-card" id="s2" style="--neon: #ff0055;">
-                <div class="card-preview">🎎</div>
-                <div class="card-info"><b>Samurai</b><span>Cost: 10,000</span></div>
-                <button class="buy-btn" onclick="buySkin(2, 10000, '#ff0055', '#ff0055')">BUY</button>
-            </div>
-            <div class="item-card" id="s3" style="--neon: #ffd700;">
-                <div class="card-preview">👑</div>
-                <div class="card-info"><b>Gold King</b><span>Cost: 50,000</span></div>
-                <button class="buy-btn" onclick="buySkin(3, 50000, '#ffd700', 'gold')">BUY</button>
-            </div>
-            </div>
-
-        <div id="shop-podiums" class="shop-content">
-            <div class="item-card equipped" id="p0" style="--neon: #2ECC71;">
-                <div class="card-preview" style="background:linear-gradient(#1a1,#0a0)">🌿</div>
-                <div class="card-info"><b>Green Grass</b><span>Default</span></div>
-                <button class="buy-btn equipped" onclick="equipPodium(0)">USE</button>
-            </div>
-            <div class="item-card" id="p1" style="--neon: #FF4500;">
-                <div class="card-preview" style="background:linear-gradient(#f40,#a00)">🌋</div>
-                <div class="card-info"><b>Lava Lake</b><span>Cost: 5,000</span></div>
-                <button class="buy-btn" onclick="buyPodium(1, 5000, 'linear-gradient(180deg, #FF4500, #AA0000)', '#FF0000')">BUY</button>
-            </div>
-            <div class="item-card" id="p2" style="--neon: #87CEEB;">
-                <div class="card-preview" style="background:linear-gradient(#aee,#ace)">❄️</div>
-                <div class="card-info"><b>Ice Palace</b><span>Cost: 15,000</span></div>
-                <button class="buy-btn" onclick="buyPodium(2, 15000, 'linear-gradient(180deg, #AEEEEE, #87CEEB)', '#AEEEEE')">BUY</button>
-            </div>
-        </div>
-
-        <button onclick="showPage('main')" style="width:100%; margin-top: 25px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); color: #888; padding: 15px; border-radius: 18px; font-weight: bold;">BACK</button>
-    </div>
-
-    <div id="stars" class="modal">
-        <div class="modal-title">ELITE TREASURY</div>
-        <div class="item-card" style="--neon: #FF0055; border-color: #FF0055;">
-            <div class="card-preview">🎁</div>
-            <div class="card-info"><b>1,000,000 COINS</b><span>Instantly</span></div>
-            <button class="buy-btn" style="background: #0088CC; color: #fff;" onclick="alert('Stars payment...')">1000 ⭐</button>
-        </div>
-        <button onclick="showPage('main')" style="width:100%; margin-top: 25px; background: none; border: 1px solid #333; color: #555; padding: 15px; border-radius: 18px; font-weight: bold;">CLOSE</button>
+    <div id="skins" class="modal">
+        <h1 style="color:var(--gold); text-align:center;">WARDROBE</h1>
+        <div id="skin-list"></div>
+        <button onclick="show('game')" style="width:100%; padding:20px; border-radius:20px; background:none; color:#555; border:1px solid #333;">BACK</button>
     </div>
 
     <script>
-        let balance = 0, income = 0, tapPower = 1, costs = [100, 500];
-        let ownedSkins = [0], ownedPodiums = [0];
+        let score = 0, income = 0, tapPower = 1;
+        let costs = [100, 500];
 
-        // ЗОЛОТОЙ ДОЖДЬ
-        const canvas = document.getElementById('bg-canvas');
-        const ctx = canvas.getContext('2d');
-        canvas.width = window.innerWidth; canvas.height = window.innerHeight;
-        let particles = Array.from({length: 40}, () => ({x: Math.random()*canvas.width, y: Math.random()*canvas.height, s: Math.random()*2+1}));
-
-        function animateBg() {
-            ctx.clearRect(0,0,canvas.width,canvas.height);
-            ctx.fillStyle = "rgba(255, 215, 0, 0.2)";
-            particles.forEach(p => {
-                ctx.beginPath(); ctx.arc(p.x, p.y, p.r, p.s, 0, Math.PI*2); ctx.fill();
-                p.y += p.s * 0.5; if(p.y > canvas.height) p.y = -10;
-            });
-            requestAnimationFrame(animateBg);
+        // Анимация фона
+        const cvs = document.getElementById('canvas');
+        const ctx = cvs.getContext('2d');
+        cvs.width = window.innerWidth; cvs.height = window.innerHeight;
+        let parts = Array.from({length: 50}, () => ({x: Math.random()*cvs.width, y: Math.random()*cvs.height, s: Math.random()*2}));
+        function draw() {
+            ctx.clearRect(0,0,cvs.width,cvs.height); ctx.fillStyle = "rgba(255,215,0,0.1)";
+            parts.forEach(p => { ctx.beginPath(); ctx.arc(p.x, p.y, 1, 0, 7); ctx.fill(); p.y += p.s; if(p.y>cvs.height) p.y=0; });
+            requestAnimationFrame(draw);
         }
-        animateBg();
+        draw();
 
-        function refresh() {
-            document.getElementById('val').innerText = Math.floor(balance);
+        function tap(e) {
+            score += tapPower; updateUI();
+            const div = document.createElement('div');
+            div.className = 'click-ani'; div.innerText = '+' + tapPower;
+            div.style.left = e.clientX + 'px'; div.style.top = e.clientY + 'px';
+            document.body.appendChild(div);
+            setTimeout(() => div.remove(), 800);
+        }
+
+        function updateUI() {
+            document.getElementById('val').innerText = Math.floor(score);
             document.getElementById('ps').innerText = income;
             document.getElementById('c1').innerText = costs[0];
             document.getElementById('c2').innerText = costs[1];
         }
 
-        function handleTap(e) {
-            balance += tapPower;
-            let p = document.createElement('div'); p.className = 'tap-coin';
-            p.innerText = '+' + tapPower; p.style.left = e.clientX + 'px'; p.style.top = e.clientY + 'px';
-            document.body.appendChild(p); setTimeout(() => p.remove(), 700);
-            refresh();
-        }
-
-        // НАВИГАЦИЯ
-        function showPage(id, el) {
+        function show(id) {
             document.querySelectorAll('.modal').forEach(m => m.style.display = 'none');
-            if(id !== 'main') document.getElementById(id).style.display = 'block';
-            if(el) { document.querySelectorAll('.nav-link').forEach(b => b.classList.remove('active')); el.classList.add('active'); }
+            if(id !== 'game') document.getElementById(id).style.display = 'block';
         }
 
-        function switchShopTab(id, el) {
-            document.querySelectorAll('.shop-content').forEach(c => c.classList.remove('active'));
-            document.querySelectorAll('.shop-tab').forEach(t => t.classList.remove('active'));
-            document.getElementById('shop-' + id).classList.add('active');
-            el.classList.add('active');
-        }
-
-        // ЛОГИКА ПОКУПОК
-        function buyUpgrade(n) {
-            let i = n - 1;
-            if(balance >= costs[i]) {
-                balance -= costs[i];
-                if(n===1) tapPower += 3; else income += 10;
-                costs[i] = Math.floor(costs[i] * 2.8); refresh();
+        function buy(n) {
+            let i = n-1;
+            if(score >= costs[i]) {
+                score -= costs[i];
+                if(n===1) tapPower += 2; else income += 5;
+                costs[i] *= 2; updateUI();
             }
         }
 
-        function buySkin(id, price, filterColor, auraColor) {
-            if(ownedSkins.includes(id)) { equipSkin(id, filterColor, auraColor); return; }
-            if(balance >= price) {
-                balance -= price; ownedSkins.push(id);
-                const btn = document.querySelector(`#s${id} .buy-btn`);
-                btn.innerText = 'USE'; btn.classList.add('gold');
-                refresh(); equipSkin(id, filterColor, auraColor);
-            }
+        // Рендер скинов
+        const skinNames = ["Casual", "Business", "Cyber", "Gold", "King", "Space", "Ninja", "Zombie", "Mafia", "God"];
+        const list = document.getElementById('skin-list');
+        skinNames.forEach((name, i) => {
+            const price = (i + 1) * 1000;
+            list.innerHTML += `<div class="item-card">
+                <div><b>${name} Donald</b><br><small>Price: ${price}</small></div>
+                <button class="btn-buy" onclick="buySkin(${price}, ${i})">BUY</button>
+            </div>`;
+        });
+
+        function buySkin(p, i) {
+            if(score >= p) {
+                score -= p; updateUI();
+                document.getElementById('donald').style.filter = `hue-rotate(${i*40}deg) drop-shadow(0 0 20px gold)`;
+                show('game');
+            } else { alert("Not enough coins!"); }
         }
 
-        function equipSkin(id, filterColor, auraColor) {
-            document.querySelectorAll('#shop-skins .item-card').forEach(c => c.classList.remove('equipped'));
-            document.querySelectorAll('#shop-skins .buy-btn').forEach(b => {b.classList.remove('equipped'); b.innerText = ownedSkins.includes(parseInt(b.parentElement.id.substring(1))) ? 'USE' : 'BUY';});
-            
-            document.getElementById('s' + id).classList.add('equipped');
-            const btn = document.querySelector(`#s${id} .buy-btn`);
-            btn.classList.add('equipped'); btn.innerText = 'EQUIPPED';
-            
-            document.getElementById('donald-model').style.filter = id === 0 ? 'none' : `drop-shadow(0 0 10px ${auraColor}) sepia(1) hue-rotate(${id*50}deg) brightness(1.2)`;
-        }
-
-        function buyPodium(id, price, bgStyle, borderStyle) {
-            if(ownedPodiums.includes(id)) { equipPodium(id, bgStyle, borderStyle); return; }
-            if(balance >= price) {
-                balance -= price; ownedPodiums.push(id);
-                refresh(); equipPodium(id, bgStyle, borderStyle);
-            }
-        }
-
-        function equipPodium(id, bgStyle, borderStyle) {
-            document.getElementById('pedestal').style.background = id === 0 ? 'linear-gradient(180deg, #1A4D1A 0%, #0D260D 100%)' : bgStyle;
-            document.getElementById('pedestal').style.borderColor = id === 0 ? '#2ECC71' : borderStyle;
-            // ... (аналогичная логика обновления UI для карточек пьедесталов)
-        }
-
-        setInterval(() => { balance += income; refresh(); }, 1000);
+        setInterval(() => { score += income; updateUI(); }, 1000);
     </script>
 </body>
 </html>
