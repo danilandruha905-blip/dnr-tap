@@ -134,19 +134,5 @@
     function save() {
         localStorage.setItem('score', score);
         localStorage.setItem('energy', energy);
-        localStorage.setItem('multi', multi);
-        localStorage.setItem('price', upgradePrice);
-    }
-
-    // Регенерация энергии
-    setInterval(() => {
-        if (energy < maxEnergy) {
-            energy += 1;
-            updateUI();
-        }
-    }, 1000);
-
-    updateUI();
-</script>
-</body>
-</html>
+        .setItem('multi', multi);
+        localStorage.setIt
