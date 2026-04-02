@@ -3,284 +3,197 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>Donald Gold Empire</title>
+    <title>Donald Golden Empire</title>
     <style>
-        :root { 
-            --gold: #FFD700; 
-            --neon: #00f2ff;
-            --bg-dark: #020a12;
-        }
+        :root { --gold: #FFD700; --neon-blue: #00F2FF; --glass: rgba(255, 255, 255, 0.08); }
         body { 
-            background: var(--bg-dark); color: white; 
-            font-family: 'Arial Rounded MT Bold', sans-serif; 
-            margin: 0; height: 100vh; overflow: hidden; 
-            display: flex; flex-direction: column;
+            background: #000; color: white; font-family: -apple-system, sans-serif; 
+            margin: 0; height: 100vh; overflow: hidden; display: flex; flex-direction: column; align-items: center;
         }
 
-        /* АНИМИРОВАННЫЙ ЖИВОЙ ФОН */
-        #money-canvas { 
-            position: fixed; inset: 0; z-index: -1; 
-            background: radial-gradient(circle at 50% 50%, #0a1f35 0%, #020a12 100%);
-        }
+        #bg-canvas { position: fixed; inset: 0; z-index: -1; opacity: 0.6; }
 
-        /* ВЕРХНЯЯ ПАНЕЛЬ */
-        header { padding: 50px 0 10px; text-align: center; z-index: 10; pointer-events: none; }
+        /* ИНТЕРФЕЙС БАЛАНСА */
+        #header { padding: 40px 0 10px; text-align: center; z-index: 10; width: 90%; }
         #balance { 
-            font-size: 80px; font-weight: 900; color: var(--gold); 
-            text-shadow: 0 0 50px rgba(255,215,0,0.6);
-            display: flex; align-items: center; justify-content: center; gap: 10px;
+            font-size: 65px; font-weight: 900; color: var(--gold); 
+            text-shadow: 0 0 30px rgba(255, 215, 0, 0.6), 2px 2px 5px black;
         }
-        .profit-text { font-size: 14px; opacity: 0.7; letter-spacing: 3px; font-weight: bold; }
 
-        /* ИГРОВАЯ ЗОНА */
-        #game-area {
-            position: relative; flex: 1; display: flex; align-items: center; justify-content: center;
-            cursor: pointer; perspective: 1000px;
+        /* ТАП-ЗОНА С ДОНАЛЬДОМ */
+        #tap-target {
+            position: relative; width: 320px; height: 320px; margin-top: 20px;
+            cursor: pointer; display: flex; align-items: flex-end; justify-content: center; z-index: 5;
         }
         
-        /* КРАСИВАЯ ЗЕМЛЯ */
+        /* ПЬЕДЕСТАЛ (ТРАВА + ДЕРЕВО) */
         #ground {
-            position: absolute; bottom: -5vh; width: 150%; height: 30vh;
-            background: radial-gradient(ellipse at top, #1b4d3e 0%, #051a14 70%);
-            border-top: 4px solid var(--neon);
-            border-radius: 50% 50% 0 0;
-            box-shadow: 0 -20px 80px rgba(0, 242, 255, 0.2);
-            filter: blur(1px);
+            position: absolute; bottom: -20px; width: 380px; height: 130px;
+            background: radial-gradient(ellipse at top, #1A4D1A 0%, #0D260D 100%);
+            border-radius: 50% 50% 0 0; border-top: 5px solid #2ECC71;
+            box-shadow: 0 -10px 40px rgba(0,255,0,0.4);
         }
 
-        /* ПЕРСОНАЖ И ЕГО АНИМАЦИИ */
-        #donald-container {
-            position: relative; z-index: 5;
-            transition: transform 0.1s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        /* SVG ДОНАЛЬД (РЕАЛИСТИЧНЫЙ И ПОДВИЖНЫЙ) */
+        svg#donald-scene { 
+            position: relative; width: 200px; height: 280px; margin-bottom: 20px; pointer-events: none;
+            transition: transform 0.08s cubic-bezier(0.18, 0.89, 0.32, 1.28);
+        }
+        #tap-target:active svg#donald-scene { transform: scale(0.85) translateY(20px); } /* СЖАТИЕ-ПРЫЖОК */
+
+        /* ЭФФЕКТ ЧАСТИЦ ПРИ КЛИКЕ */
+        .tap-particle {
+            position: absolute; pointer-events: none; font-size: 30px;
+            color: #FFF; text-shadow: 0 0 15px gold; z-index: 1000;
+            animation: explode 0.7s ease-out forwards;
+        }
+        @keyframes explode {
+            0% { transform: translate(0,0) scale(1.2); opacity: 1; }
+            100% { transform: translate(var(--x), var(--y)) scale(0.2); opacity: 0; }
         }
 
-        #donald {
-            width: 280px; height: 280px;
-            filter: drop-shadow(0 0 20px rgba(0,0,0,0.8));
-            transition: all 0.3s ease;
+        /* МАГАЗИНЫ И МЕНЮ (GLASSMORPHISM) */
+        .modal { 
+            display: none; position: fixed; inset: 0; z-index: 1000;
+            background: rgba(0,0,0,0.92); backdrop-filter: blur(25px);
+            padding: 30px 20px; animation: slideUp 0.3s ease-out;
         }
+        @keyframes slideUp { from { transform: translateY(100%); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
 
-        /* КЛАСС ДЛЯ ПРЫЖКА */
-        .jump { transform: translateY(-50px) scale(1.05); }
+        .modal-title { font-size: 32px; font-weight: 900; text-align: center; margin-bottom: 20px; color: var(--gold); text-shadow: 0 0 15px gold; }
 
-        /* КЛИК-ЭФФЕКТ */
-        .tap-effect {
-            position: absolute; pointer-events: none; font-size: 45px; font-weight: 900;
-            color: white; text-shadow: 0 0 20px var(--gold);
-            animation: flyUp 0.7s ease-out forwards; z-index: 100;
-        }
-        @keyframes flyUp {
-            0% { transform: translateY(0) scale(1) rotate(0deg); opacity: 1; }
-            100% { transform: translateY(-250px) scale(1.5) rotate(15deg); opacity: 0; }
-        }
-
-        /* НИЖНЕЕ МЕНЮ */
-        nav {
-            position: fixed; bottom: 30px; left: 5%; width: 90%; height: 85px;
-            background: rgba(255,255,255,0.05); backdrop-filter: blur(20px);
-            border-radius: 30px; border: 1px solid rgba(255,255,255,0.1);
-            display: flex; justify-content: space-around; align-items: center; z-index: 1000;
-        }
-        .nav-btn { text-align: center; opacity: 0.5; transition: 0.3s; flex: 1; color: white; text-decoration: none; font-size: 13px; font-weight: bold; }
-        .nav-btn.active { opacity: 1; color: var(--neon); transform: translateY(-5px); text-shadow: 0 0 15px var(--neon); }
-
-        /* МОДАЛЬНЫЕ ОКНА */
-        .modal {
-            display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.95);
-            z-index: 2000; padding: 40px 20px;
-        }
         .item-card {
-            background: rgba(255,255,255,0.07); border-radius: 20px; padding: 20px;
-            margin-bottom: 15px; display: flex; align-items: center; gap: 20px;
-            border: 1px solid rgba(255,255,255,0.1);
+            background: var(--glass); border-radius: 20px; padding: 15px; margin-bottom: 12px;
+            border: 1px solid rgba(255,255,255,0.08); display: flex; justify-content: space-between; align-items: center;
         }
-        .buy-btn { background: var(--gold); border: none; padding: 15px 25px; border-radius: 15px; font-weight: 900; cursor: pointer; }
+        .item-preview { width: 50px; height: 50px; border-radius: 12px; background: rgba(255,255,255,0.05); display: flex; align-items: center; justify-content: center; }
+        .buy-btn { background: var(--gold); color: #000; border: none; padding: 12px 20px; border-radius: 12px; font-weight: 900; }
+
+        #nav { 
+            position: fixed; bottom: 25px; width: 90%; height: 75px;
+            background: rgba(0,0,0,0.6); backdrop-filter: blur(20px);
+            border-radius: 25px; border: 1px solid rgba(255,255,255,0.08);
+            display: flex; justify-content: space-around; align-items: center; z-index: 100;
+        }
+        .nav-link { text-align: center; opacity: 0.5; transition: 0.3s; cursor: pointer; flex: 1; color: #fff; text-decoration: none; }
+        .nav-link.active { opacity: 1; transform: translateY(-5px); color: var(--gold); }
     </style>
 </head>
 <body>
+    <canvas id="bg-canvas"></canvas>
 
-    <canvas id="money-canvas"></canvas>
-
-    <header>
+    <div id="header">
         <div id="balance">💰 <span id="val">0</span></div>
-        <div class="profit-text">PROFIT: +<span id="ps">0</span>/SEC</div>
-    </header>
-
-    <div id="game-area" onmousedown="handleTap(event)" ontouchstart="handleTap(event)">
-        <div id="ground"></div>
-        <div id="donald-container">
-            <img id="donald" src="https://www.pngarts.com/files/3/Donald-Duck-PNG-Transparent-Image.png">
-        </div>
+        <div style="opacity: 0.4; font-size: 11px;">AUTO-MINING: +<span id="ps">0</span>/SEC</div>
     </div>
 
-    <nav>
-        <div class="nav-btn active" onclick="toggleMod('none', this)">💎<br>Farm</div>
-        <div class="nav-btn" onclick="toggleMod('shop', this)">⚡<br>Upgrades</div>
-        <div class="nav-btn" onclick="toggleMod('skins', this)">🎨<br>Outfits</div>
-    </nav>
+    <div id="tap-target" onclick="tap(event)">
+        <div id="ground"></div>
+        <svg id="donald-scene" viewBox="0 0 200 300">
+            <path d="M160 300 Q150 200 160 100" stroke="#5D4037" stroke-width="12" fill="none"/>
+            <circle cx="160" cy="80" r="25" fill="#2E7D32"/>
+            
+            <g id="body" filter="drop-shadow(0 0 10px gold)">
+                <ellipse cx="100" cy="150" rx="35" ry="45" fill="white" stroke="black"/>
+                <circle cx="100" cy="100" r="25" fill="white" stroke="black"/>
+                <ellipse cx="90" cy="95" rx="3" ry="6" fill="black"/>
+                <ellipse cx="110" cy="95" rx="3" ry="6" fill="black"/>
+                <path d="M80 115 Q100 135 120 115 Z" fill="#FF8800" stroke="black"/>
+                <path d="M90 75 L110 75 L100 65 Z" fill="#0044FF"/>
+                <path d="M100 195 L90 230 L110 230 Z" fill="#FF8800"/>
+            </g>
+        </svg>
+    </div>
+
+    <div id="nav">
+        <div class="nav-link active" onclick="showMod('main', this)">🏠<span>Farm</span></div>
+        <div class="nav-link" onclick="showMod('shop', this)">🚜<span>Empire</span></div>
+        <div class="nav-link" onclick="showMod('stars', this)">💎<span>VIP</span></div>
+    </div>
 
     <div id="shop" class="modal">
-        <h1 style="text-align:center; color:var(--gold);">BLACK MARKET</h1>
-        <div class="item-card">
-            <div class="item-info"><b>Golden Corn</b><br><small>+5 per tap</small></div>
-            <button class="buy-btn" onclick="upgrade(1)">Cost: <span id="c1">100</span></button>
+        <div class="modal-title">FARM MARKET</div>
+        <div class="item-card" style="border-color: var(--neon-blue);">
+            <div class="item-preview">🌾</div>
+            <div><b>Hyper Tap</b><span>+5/тап</span></div>
+            <button class="buy-btn" onclick="buy(1)">Цена: <span id="c1">100</span></button>
         </div>
-        <div class="item-card">
-            <div class="item-info"><b>Cyber Tractor</b><br><small>+15 per sec</small></div>
-            <button class="buy-btn" onclick="upgrade(2)">Cost: <span id="c2">500</span></button>
+        <div class="item-card" style="border-color: #BC13FE;">
+            <div class="item-preview">🚜</div>
+            <div><b>Auto Mine</b><span>+10/сек</span></div>
+            <button class="buy-btn" onclick="buy(2)">Цена: <span id="c2">500</span></button>
         </div>
-        <button onclick="toggleMod('none')" style="width:100%; padding:20px; background:none; color:white; border:1px solid #333; border-radius: 20px; margin-top: 20px;">BACK TO FARM</button>
+        <button onclick="showMod('main')" style="width: 100%; padding: 15px; background: none; border: 1px solid #333; color: #555; border-radius: 15px; font-weight:bold;">CLOSE</button>
     </div>
 
-    <div id="skins" class="modal">
-        <h1 style="text-align:center; color:var(--gold);">WARDROBE</h1>
-        <div id="skin-list"></div>
-        <button onclick="toggleMod('none')" style="width:100%; padding:20px; background:none; color:white; border:1px solid #333; border-radius: 20px; margin-top: 20px;">CLOSE</button>
+    <div id="stars" class="modal">
+        <div class="modal-title">vip TREASURY</div>
+        <div class="item-card" style="border-color: #ff0055;">
+            <div class="item-preview">🎁</div>
+            <div><b>1,000,000 COINS</b><span>Instantly</span></div>
+            <button class="buy-btn" style="background: #0088CC; color: #fff;" onclick="alert('Stars payment...')">1000 ⭐</button>
+        </div>
+        <button onclick="showMod('main')" style="width: 100%; padding: 15px; background: none; border: 1px solid #333; color: #555; border-radius: 15px; font-weight:bold;">CLOSE</button>
     </div>
 
     <script>
-        let score = 0;
-        let income = 0;
-        let tapPower = 1;
-        let tapCount = 0;
-        let costs = [100, 500];
+        let score = 0, tapPower = 1, auto = 0, costs = [100, 500];
 
-        // --- АНИМИРОВАННЫЙ ФОН И "СЛИПАЮЩИЕСЯ" МОНЕТЫ ---
-        const canvas = document.getElementById('money-canvas');
+        // ЗОЛОТОЙ ДОЖДЬ И НЕОНОВЫЙ ФОН
+        const canvas = document.getElementById('bg-canvas');
         const ctx = canvas.getContext('2d');
-        canvas.width = window.innerWidth;
-        canvas.height = window.innerHeight;
-
-        let particles = Array.from({length: 50}, () => ({
-            x: Math.random() * canvas.width, 
-            y: Math.random() * canvas.height, 
-            s: Math.random() * 3 + 1,
-            speed: Math.random() * 0.5 + 0.2,
-            angle: Math.random() * Math.PI * 2
-        }));
-
-        function drawBackground() {
+        canvas.width = window.innerWidth; canvas.height = window.innerHeight;
+        let rain = Array.from({length: 40}, () => ({x: Math.random()*canvas.width, y: Math.random()*canvas.height, s: Math.random()*2+1}));
+        
+        function animateBg() {
             ctx.clearRect(0,0,canvas.width,canvas.height);
-            
-            particles.forEach(p => {
-                // Монеты плавно "текут" к верхней части экрана (к балансу)
-                let dx = canvas.width/2 - p.x;
-                let dy = -p.y;
-                p.x += dx * 0.002; 
-                p.y += dy * 0.005 + p.speed;
-
-                if (p.y < -20) {
-                    p.y = canvas.height + 20;
-                    p.x = Math.random() * canvas.width;
-                }
-
-                ctx.font = (p.s * 10) + "px serif";
-                ctx.globalAlpha = 0.3;
-                ctx.fillText("💰", p.x, p.y);
-            });
-            requestAnimationFrame(drawBackground);
+            // Фон-градиент
+            let grad = ctx.createLinearGradient(0,0,0,canvas.height);
+            grad.addColorStop(0, "#0a111a"); grad.addColorStop(0.5, "#162a44"); grad.addColorStop(1, "#1a3a16");
+            ctx.fillStyle = grad; ctx.fillRect(0,0,canvas.width,canvas.height);
+            // Монетки
+            ctx.fillStyle = "rgba(255, 215, 0, 0.4)"; ctx.font = "20px serif";
+            rain.forEach(p => { ctx.fillText("💰", p.x, p.y); p.y += p.s; if(p.y > canvas.height) p.y = -20; });
+            requestAnimationFrame(animateBg);
         }
-        drawBackground();
+        animateBg();
 
-        // --- ЛОГИКА ТАПА И ПРЫЖКА ---
-        function handleTap(e) {
-            if(e.type === 'mousedown' && 'ontouchstart' in window) return;
-            
-            score += tapPower;
-            tapCount++;
-            updateUI();
-
-            const donaldContainer = document.getElementById('donald-container');
-            const donaldImg = document.getElementById('donald');
-
-            // 1. Прыжок
-            donaldContainer.classList.remove('jump');
-            void donaldContainer.offsetWidth; // Магия для перезапуска анимации
-            donaldContainer.classList.add('jump');
-            setTimeout(() => donaldContainer.classList.remove('jump'), 100);
-
-            // 2. Смена позы каждые 10 кликов
-            if(tapCount % 10 === 0) {
-                const poses = [
-                    'scaleX(1) rotate(0deg)',
-                    'scaleX(-1) rotate(5deg)',
-                    'scaleX(1) rotate(-10deg) skew(5deg)',
-                    'scale(1.2) rotate(10deg)',
-                    'scaleX(-1) brightness(1.5)'
-                ];
-                const randomPose = poses[Math.floor(Math.random() * poses.length)];
-                donaldImg.style.transform = randomPose;
-            }
-
-            // 3. Текст клика
-            const touch = e.touches ? e.touches[0] : e;
-            const div = document.createElement('div');
-            div.className = 'tap-effect'; 
-            div.innerText = '+$' + tapPower;
-            div.style.left = touch.clientX + 'px'; 
-            div.style.top = touch.clientY + 'px';
-            document.body.appendChild(div);
-            setTimeout(() => div.remove(), 700);
-        }
-
-        function updateUI() {
+        function sync() {
             document.getElementById('val').innerText = Math.floor(score);
-            document.getElementById('ps').innerText = income;
+            document.getElementById('ps').innerText = auto;
             document.getElementById('c1').innerText = costs[0];
             document.getElementById('c2').innerText = costs[1];
         }
 
-        function upgrade(n) {
-            let i = n-1;
-            if(score >= costs[i]) {
-                score -= costs[i];
-                if(n===1) tapPower += 5; else income += 15;
-                costs[i] = Math.round(costs[i] * 2.8); 
-                updateUI();
+        // ТАП С ПРЫЖКОМ И ЧАСТИЦАМИ
+        function tap(e) {
+            score += tapPower; sync();
+            // Частицы
+            for(let i=0; i<6; i++) {
+                let div = document.createElement('div'); div.className = 'tap-particle'; div.innerText = '💰';
+                div.style.left = e.clientX + 'px'; div.style.top = e.clientY + 'px';
+                div.style.setProperty('--x', (Math.random()-0.5)*300 + 'px');
+                div.style.setProperty('--y', (Math.random()-0.5)*300 + 'px');
+                document.body.appendChild(div); setTimeout(() => div.remove(), 700);
             }
         }
 
-        function toggleMod(id, el) {
+        function showMod(id, el) {
             document.querySelectorAll('.modal').forEach(m => m.style.display = 'none');
-            if(id !== 'none') document.getElementById(id).style.display = 'block';
-            if(el) {
-                document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
-                el.classList.add('active');
+            document.querySelectorAll('.nav-link').forEach(n => n.classList.remove('active'));
+            if(id !== 'main') document.getElementById(id).style.display = 'block';
+            if(el) el.classList.add('active'); else document.querySelectorAll('.nav-link')[0].classList.add('active');
+        }
+
+        function buy(n) {
+            let i = n - 1;
+            if(score >= costs[i]) {
+                score -= costs[i]; if(n===1) tapPower += 5; else auto += 10;
+                costs[i] *= 3; sync();
             }
         }
 
-        // Авто-доход
-        setInterval(() => { 
-            if(income > 0) {
-                score += income; 
-                updateUI();
-            }
-        }, 1000);
-
-        // Инициализация скинов (как в твоем коде)
-        const skinData = [
-            {n: "Classic", p: 0, h: 0},
-            {n: "Neon Hunter", p: 2000, h: 180},
-            {n: "Golden King", p: 10000, h: 50},
-            {n: "Void Duck", p: 50000, h: 280}
-        ];
-        const sList = document.getElementById('skin-list');
-        skinData.forEach(s => {
-            sList.innerHTML += `
-                <div class="item-card" onclick="setSkin(${s.p}, ${s.h})">
-                    <img src="https://www.pngarts.com/files/3/Donald-Duck-PNG-Transparent-Image.png" style="width:60px; filter: hue-rotate(${s.h}deg)">
-                    <div class="item-info"><b>${s.n}</b><br><span>Price: ${s.p}</span></div>
-                    <button class="buy-btn" style="background:${score >= s.p ? '#00f2ff' : '#555'}">${score >= s.p ? 'USE' : 'LOCKED'}</button>
-                </div>
-            `;
-        });
-
-        function setSkin(price, hue) {
-            if(score >= price) {
-                document.getElementById('donald').style.filter = `hue-rotate(${hue}deg) drop-shadow(0 0 20px gold)`;
-                toggleMod('none');
-            }
-        }
+        setInterval(() => { score += auto; sync(); }, 1000);
     </script>
 </body>
 </html>
