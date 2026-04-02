@@ -3,146 +3,174 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>Donald Elite Empire</title>
+    <title>Donald Farm Tycoon</title>
     <style>
-        :root { --gold: #FFD700; --blue: #00F2FF; --bg: #00050a; }
+        :root { 
+            --gold: #FFD700; --sky: #1e3c72; --grass: #2d5a27; 
+            --accent: var(--gold); --glow: rgba(255, 215, 0, 0.3);
+        }
         body { 
-            background: var(--bg); color: white; font-family: -apple-system, sans-serif; 
+            background: #000; color: white; font-family: 'Arial Rounded MT Bold', sans-serif; 
             margin: 0; height: 100vh; overflow: hidden; display: flex; flex-direction: column;
         }
 
-        /* Живой фон с частицами */
-        #canvas { position: fixed; inset: 0; z-index: -1; }
+        /* АНИМИРОВАННЫЙ ФОН ФЕРМЫ */
+        #bg-container {
+            position: fixed; inset: 0; z-index: -1;
+            background: linear-gradient(to bottom, var(--sky) 0%, #2a5298 50%, var(--grass) 100%);
+            transition: background 1s ease;
+        }
+        #money-canvas { position: absolute; inset: 0; pointer-events: none; }
 
-        /* Шапка */
+        /* ИНТЕРФЕЙС */
         header { padding: 40px 0 10px; text-align: center; z-index: 10; }
-        #balance { font-size: 64px; font-weight: 900; color: var(--gold); text-shadow: 0 0 40px rgba(255,215,0,0.5); }
-        .stats-bar { font-size: 12px; opacity: 0.6; text-transform: uppercase; letter-spacing: 2px; }
+        #balance { 
+            font-size: 68px; font-weight: 900; color: var(--gold); 
+            text-shadow: 0 0 30px var(--glow), 2px 2px 0px #000;
+        }
+        .info { font-size: 14px; text-transform: uppercase; letter-spacing: 3px; opacity: 0.8; }
 
-        /* Игровая сцена */
-        #game-scene {
+        /* ИГРОВАЯ ЗОНА */
+        #stage {
             position: relative; flex: 1; display: flex; align-items: center; justify-content: center;
-            cursor: pointer; perspective: 1000px;
+            cursor: pointer;
         }
         
-        #landscape {
-            position: absolute; bottom: 50px; width: 120%; height: 180px;
-            background: radial-gradient(ellipse at top, #2d5a27 0%, #0a1a05 100%);
-            border-top: 5px solid #4CAF50; border-radius: 50% 50% 0 0;
-            box-shadow: 0 -20px 50px rgba(0,255,0,0.1);
+        #farm-ground {
+            position: absolute; bottom: 0; width: 150%; height: 25vh;
+            background: radial-gradient(ellipse at top, #3ea333 0%, #1a3a16 100%);
+            border-top: 8px solid #55cc44; border-radius: 50% 50% 0 0;
+            box-shadow: 0 -10px 50px rgba(0,0,0,0.5);
         }
 
-        #tree {
-            position: absolute; right: 15%; bottom: 120px; width: 120px; height: 300px;
+        #tree-decor {
+            position: absolute; left: 10%; bottom: 15vh; width: 140px; height: 320px;
             background: url('https://cdn-icons-png.flaticon.com/512/490/490406.png') center/contain no-repeat;
-            filter: drop-shadow(0 0 20px rgba(0,0,0,0.8));
+            filter: drop-shadow(10px 10px 20px rgba(0,0,0,0.4));
         }
 
-        #donald {
-            position: relative; width: 220px; height: 220px; z-index: 5;
-            transition: transform 0.05s cubic-bezier(0.17, 0.67, 0.83, 0.67);
-            filter: drop-shadow(0 10px 30px rgba(0,0,0,0.5));
+        #donald-main {
+            width: 240px; height: 240px; z-index: 5;
+            transition: transform 0.05s, filter 0.5s;
+            filter: drop-shadow(0 0 20px var(--glow));
         }
-        #game-scene:active #donald { transform: scale(0.9) rotate(-3deg); }
+        #stage:active #donald-main { transform: scale(0.92) rotate(-2deg); }
 
-        /* Магазин и меню */
-        .glass-panel {
-            background: rgba(255, 255, 255, 0.03); backdrop-filter: blur(25px);
-            border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 30px;
+        /* МАГАЗИН И ПАНЕЛИ */
+        .glass { background: rgba(0, 0, 0, 0.6); backdrop-filter: blur(20px); border: 1px solid rgba(255,255,255,0.1); }
+        
+        #menu {
+            position: fixed; bottom: 25px; width: 90%; left: 5%; height: 80px;
+            border-radius: 25px; display: flex; justify-content: space-around; align-items: center; z-index: 100;
         }
-
-        #nav {
-            position: fixed; bottom: 30px; left: 5%; width: 90%; height: 80px;
-            display: flex; justify-content: space-around; align-items: center; z-index: 100;
-        }
-        .nav-btn { text-align: center; opacity: 0.5; transition: 0.3s; flex: 1; }
-        .nav-btn.active { opacity: 1; color: var(--gold); transform: translateY(-5px); }
-        .nav-btn i { font-size: 28px; display: block; }
+        .nav-item { text-align: center; opacity: 0.5; transition: 0.3s; flex: 1; }
+        .nav-item.active { opacity: 1; color: var(--gold); transform: translateY(-5px); }
 
         .modal {
-            display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.9);
-            z-index: 1000; padding: 40px 20px; overflow-y: auto;
+            display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.95);
+            z-index: 1000; padding: 30px 20px; overflow-y: auto;
         }
-        .item-card {
-            background: rgba(255,255,255,0.05); border-radius: 20px; padding: 20px;
-            margin-bottom: 15px; display: flex; justify-content: space-between; align-items: center;
-            border: 1px solid rgba(255,255,255,0.05);
+        .card {
+            background: rgba(255,255,255,0.05); border-radius: 20px; padding: 15px;
+            margin-bottom: 12px; display: flex; align-items: center; gap: 15px;
+            border: 1px solid rgba(255,255,255,0.1); transition: 0.3s;
         }
+        .card:active { transform: scale(0.98); background: rgba(255,255,255,0.1); }
+        .card img { width: 60px; height: 60px; border-radius: 12px; background: #111; }
+        .card-info { flex: 1; }
+        .card-info b { display: block; font-size: 18px; }
+        .card-info span { color: var(--gold); font-size: 14px; }
+
         .btn-buy {
-            background: var(--gold); color: black; border: none; padding: 12px 20px;
-            border-radius: 15px; font-weight: 800; font-size: 14px;
+            background: var(--gold); color: #000; border: none; padding: 12px 15px;
+            border-radius: 12px; font-weight: 900;
         }
 
-        /* Эффект клика */
-        .click-ani {
-            position: absolute; pointer-events: none; color: white; font-weight: 900;
-            font-size: 40px; text-shadow: 0 0 10px gold; animation: fly 0.8s ease-out forwards;
+        /* КЛИК-ЭФФЕКТ */
+        .coin-pop {
+            position: absolute; pointer-events: none; font-size: 35px; font-weight: 900;
+            color: white; text-shadow: 0 0 10px gold; animation: popUp 0.8s ease-out forwards;
         }
-        @keyframes fly { 0% { opacity: 1; transform: translateY(0); } 100% { opacity: 0; transform: translateY(-200px) scale(1.5); } }
+        @keyframes popUp { 0% { opacity: 1; transform: scale(1); } 100% { opacity: 0; transform: translateY(-150px) scale(1.5); } }
     </style>
 </head>
 <body>
-    <canvas id="canvas"></canvas>
+    <div id="bg-container">
+        <canvas id="money-canvas"></canvas>
+    </div>
     
     <header>
-        <div class="stats-bar">Auto-Profit: +<span id="ps">0</span>/sec</div>
+        <div class="info">Profit: +<span id="ps">0</span>/sec</div>
         <div id="balance">💰 <span id="val">0</span></div>
     </header>
 
-    <div id="game-scene" onclick="tap(event)">
-        <div id="landscape"></div>
-        <div id="tree"></div>
-        <img id="donald" src="https://www.pngarts.com/files/3/Donald-Duck-PNG-Transparent-Image.png" alt="Donald">
+    <div id="stage" onclick="tap(event)">
+        <div id="farm-ground"></div>
+        <div id="tree-decor"></div>
+        <img id="donald-main" src="https://www.pngarts.com/files/3/Donald-Duck-PNG-Transparent-Image.png">
     </div>
 
-    <div id="nav" class="glass-panel">
-        <div class="nav-btn active" onclick="show('game')">🏠<br>Main</div>
-        <div class="nav-btn" onclick="show('shop')">🚀<br>Empire</div>
-        <div class="nav-btn" onclick="show('skins')">👕<br>Skins</div>
+    <div id="menu" class="glass">
+        <div class="nav-item active" onclick="openMod('none', this)">🏡<br>Farm</div>
+        <div class="nav-item" onclick="openMod('shop', this)">🚜<br>Market</div>
+        <div class="nav-item" onclick="openMod('skins', this)">👕<br>Skins</div>
     </div>
 
     <div id="shop" class="modal">
-        <h1 style="color:var(--gold); text-align:center;">EMPIRE UPGRADES</h1>
-        <div class="item-card">
-            <div><b>Super Tap</b><br><small>Level <span id="lvl1">1</span></small></div>
-            <button class="btn-buy" onclick="buy(1)">Cost: <span id="c1">100</span></button>
+        <h2 style="text-align:center; color:var(--gold);">FARM UPGRADES</h2>
+        <div class="card">
+            <img src="https://cdn-icons-png.flaticon.com/512/2311/2311992.png">
+            <div class="card-info"><b>Golden Feed</b><span>Cost: <span id="c1">100</span></span></div>
+            <button class="btn-buy" onclick="buyUp(1)">UP</button>
         </div>
-        <div class="item-card">
-            <div><b>Gold Mine</b><br><small>Level <span id="lvl2">1</span></small></div>
-            <button class="btn-buy" onclick="buy(2)">Cost: <span id="c2">500</span></button>
+        <div class="card">
+            <img src="https://cdn-icons-png.flaticon.com/512/2913/2913501.png">
+            <div class="card-info"><b>Auto Tractor</b><span>Cost: <span id="c2">500</span></span></div>
+            <button class="btn-buy" onclick="buyUp(2)">UP</button>
         </div>
-        <button onclick="show('game')" style="width:100%; padding:20px; border-radius:20px; background:none; color:#555; border:1px solid #333;">BACK</button>
+        <button onclick="openMod('none')" style="width:100%; padding:20px; background:none; color:#777; border:none;">CLOSE</button>
     </div>
 
     <div id="skins" class="modal">
-        <h1 style="color:var(--gold); text-align:center;">WARDROBE</h1>
-        <div id="skin-list"></div>
-        <button onclick="show('game')" style="width:100%; padding:20px; border-radius:20px; background:none; color:#555; border:1px solid #333;">BACK</button>
+        <h2 style="text-align:center; color:var(--gold);">SELECT OUTFIT</h2>
+        <div id="skin-container"></div>
+        <button onclick="openMod('none')" style="width:100%; padding:20px; background:none; color:#777; border:none;">CLOSE</button>
     </div>
 
     <script>
-        let score = 0, income = 0, tapPower = 1;
-        let costs = [100, 500];
+        let score = 0, income = 0, tapPower = 1, costs = [100, 500];
+        
+        // ЗОЛОТОЙ ДОЖДЬ НА ФЕРМЕ
+        const canvas = document.getElementById('money-canvas');
+        const ctx = canvas.getContext('2d');
+        canvas.width = window.innerWidth; canvas.height = window.innerHeight;
+        let particles = Array.from({length: 40}, () => ({
+            x: Math.random() * canvas.width, 
+            y: Math.random() * canvas.height, 
+            s: Math.random() * 3 + 2,
+            v: Math.random() * 20 + 10
+        }));
 
-        // Анимация фона
-        const cvs = document.getElementById('canvas');
-        const ctx = cvs.getContext('2d');
-        cvs.width = window.innerWidth; cvs.height = window.innerHeight;
-        let parts = Array.from({length: 50}, () => ({x: Math.random()*cvs.width, y: Math.random()*cvs.height, s: Math.random()*2}));
-        function draw() {
-            ctx.clearRect(0,0,cvs.width,cvs.height); ctx.fillStyle = "rgba(255,215,0,0.1)";
-            parts.forEach(p => { ctx.beginPath(); ctx.arc(p.x, p.y, 1, 0, 7); ctx.fill(); p.y += p.s; if(p.y>cvs.height) p.y=0; });
-            requestAnimationFrame(draw);
+        function drawRain() {
+            ctx.clearRect(0,0,canvas.width,canvas.height);
+            ctx.fillStyle = "rgba(255, 215, 0, 0.6)";
+            particles.forEach(p => {
+                ctx.font = p.v + "px serif";
+                ctx.fillText("💰", p.x, p.y);
+                p.y += p.s;
+                if(p.y > canvas.height) p.y = -20;
+            });
+            requestAnimationFrame(drawRain);
         }
-        draw();
+        drawRain();
 
         function tap(e) {
             score += tapPower; updateUI();
-            const div = document.createElement('div');
-            div.className = 'click-ani'; div.innerText = '+' + tapPower;
-            div.style.left = e.clientX + 'px'; div.style.top = e.clientY + 'px';
-            document.body.appendChild(div);
-            setTimeout(() => div.remove(), 800);
+            const p = document.createElement('div');
+            p.className = 'coin-pop'; p.innerText = '+$' + tapPower;
+            p.style.left = e.clientX + 'px'; p.style.top = e.clientY + 'px';
+            document.body.appendChild(p);
+            setTimeout(() => p.remove(), 800);
         }
 
         function updateUI() {
@@ -152,37 +180,53 @@
             document.getElementById('c2').innerText = costs[1];
         }
 
-        function show(id) {
+        function openMod(id, el) {
             document.querySelectorAll('.modal').forEach(m => m.style.display = 'none');
-            if(id !== 'game') document.getElementById(id).style.display = 'block';
-        }
-
-        function buy(n) {
-            let i = n-1;
-            if(score >= costs[i]) {
-                score -= costs[i];
-                if(n===1) tapPower += 2; else income += 5;
-                costs[i] *= 2; updateUI();
+            if(id !== 'none') document.getElementById(id).style.display = 'block';
+            if(el) {
+                document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+                el.classList.add('active');
             }
         }
 
-        // Рендер скинов
-        const skinNames = ["Casual", "Business", "Cyber", "Gold", "King", "Space", "Ninja", "Zombie", "Mafia", "God"];
-        const list = document.getElementById('skin-list');
-        skinNames.forEach((name, i) => {
-            const price = (i + 1) * 1000;
-            list.innerHTML += `<div class="item-card">
-                <div><b>${name} Donald</b><br><small>Price: ${price}</small></div>
-                <button class="btn-buy" onclick="buySkin(${price}, ${i})">BUY</button>
-            </div>`;
+        function buyUp(n) {
+            let i = n-1;
+            if(score >= costs[i]) {
+                score -= costs[i];
+                if(n===1) tapPower += 5; else income += 15;
+                costs[i] *= 3; updateUI();
+            }
+        }
+
+        // СКИНЫ И ФОНЫ
+        const skins = [
+            {name: "Farmer", price: 0, color: "#1e3c72", glow: "rgba(255,215,0,0.3)", img: "https://www.pngarts.com/files/3/Donald-Duck-PNG-Transparent-Image.png"},
+            {name: "Cyber", price: 1000, color: "#000033", glow: "#00f2ff", img: "https://www.pngarts.com/files/3/Donald-Duck-PNG-Transparent-Image.png"},
+            {name: "Gold", price: 5000, color: "#443300", glow: "#ffd700", img: "https://www.pngarts.com/files/3/Donald-Duck-PNG-Transparent-Image.png"},
+            {name: "Space", price: 10000, color: "#110022", glow: "#bc13fe", img: "https://www.pngarts.com/files/3/Donald-Duck-PNG-Transparent-Image.png"},
+            {name: "Mafia", price: 25000, color: "#111", glow: "#fff", img: "https://www.pngarts.com/files/3/Donald-Duck-PNG-Transparent-Image.png"}
+        ];
+
+        const sContainer = document.getElementById('skin-container');
+        skins.forEach((s, i) => {
+            sContainer.innerHTML += `
+                <div class="card" onclick="applySkin(${i})">
+                    <img src="${s.img}" style="filter: hue-rotate(${i*50}deg)">
+                    <div class="card-info"><b>${s.name} Donald</b><span>Price: ${s.price}</span></div>
+                    <button class="btn-buy">${score >= s.price ? 'GET' : 'LOCKED'}</button>
+                </div>
+            `;
         });
 
-        function buySkin(p, i) {
-            if(score >= p) {
-                score -= p; updateUI();
-                document.getElementById('donald').style.filter = `hue-rotate(${i*40}deg) drop-shadow(0 0 20px gold)`;
-                show('game');
-            } else { alert("Not enough coins!"); }
+        function applySkin(i) {
+            const s = skins[i];
+            if(score >= s.price) {
+                document.getElementById('bg-container').style.background = `linear-gradient(to bottom, ${s.color} 0%, #000 100%)`;
+                document.getElementById('donald-main').style.filter = `drop-shadow(0 0 30px ${s.glow}) hue-rotate(${i*50}deg)`;
+                openMod('none');
+            } else {
+                alert("Need more money!");
+            }
         }
 
         setInterval(() => { score += income; updateUI(); }, 1000);
