@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>DNR Tap</title>
+    <style>
+        body { background: #000; color: #fff; text-align: center; font-family: sans-serif; display: flex; flex-direction: column; justify-content: center; align-items: center; height: 100vh; margin: 0; overflow: hidden; }
+        #score { font-size: 60px; font-weight: bold; color: #ffcc00; margin-bottom: 20px; }
+        #coin { width: 220px; cursor: pointer; transition: transform 0.1s; -webkit-tap-highlight-color: transparent; }
+        #coin:active { transform: scale(0.9); }
+    </style>
+</head>
+<body>
+    <div id="score">0</div>
+    <img id="coin" src="https://cdn-icons-png.flaticon.com/512/2489/2489756.png">
+    <script>
+        let score = 0;
+        const scoreElement = document.getElementById('score');
+        document.getElementById('coin').onclick = () => {
+            score++;
+            scoreElement.innerText = score;
+        };
+    </script>
+</body>
+</html>
