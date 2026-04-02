@@ -123,15 +123,4 @@
         if (score >= upgradePrice) {
             score -= upgradePrice;
             multi++;
-            upgradePrice *= 2;
-            save();
-            updateUI();
-        } else {
-            alert('Недостаточно коинов!');
-        }
-    }
-
-    function save() {
-        localStorage.setItem('score', score);
-        localStorage.setItem('energy', energy);
-        .setItem('multi', multi);
+            upgradePr
