@@ -3,70 +3,80 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>Donald Golden Combat</title>
+    <title>Donald Animated Combat</title>
     <style>
-        :root { --gold: #ffd700; --shadow: rgba(255, 215, 0, 0.5); }
+        :root { --gold: #ffd700; --shadow: rgba(255, 215, 0, 0.6); }
         body { 
-            background: radial-gradient(circle at center, #001a33 0%, #000 100%); 
+            background: #000;
             color: white; font-family: 'Segoe UI', Roboto, sans-serif; 
             margin: 0; display: flex; flex-direction: column; align-items: center; 
-            height: 100vh; overflow: hidden; user-select: none;
-        }
-        /* Декор фона */
-        .money-bg {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: url('https://www.transparenttextures.com/patterns/carbon-fibre.png');
-            opacity: 0.3; z-index: -1;
+            height: 100vh; overflow: hidden; user-select: none; position: relative;
         }
 
-        #header { width: 100%; padding: 15px; text-align: center; background: rgba(0,0,0,0.8); border-bottom: 2px solid var(--gold); }
+        /* ----- АНИМИРОВАННЫЙ ЗАДНИЙ ФОН ----- */
+        body::before {
+            content: ''; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: radial-gradient(circle at center, #002244 0%, #000 100%);
+            z-index: -2;
+            animation: bgPulse 5s infinite alternate; /* Пульсация фона */
+        }
+        @keyframes bgPulse {
+            0% { opacity: 0.8; }
+            100% { opacity: 1; background: radial-gradient(circle at center, #003366 0%, #000 100%); }
+        }
+
+        /* Золотой дождь (Canvas будет управляться JS) */
+        #gold-rain {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            z-index: -1; pointer-events: none;
+        }
+
+        /* ----- ИНТЕРФЕЙС ----- */
+        #header { width: 100%; padding: 15px; text-align: center; background: rgba(0,0,0,0.85); border-bottom: 2px solid var(--gold); box-shadow: 0 0 15px var(--gold); z-index: 10; box-sizing: border-box;}
         #balance { font-size: 48px; font-weight: 900; color: var(--gold); text-shadow: 0 0 20px gold; }
         
-        /* ГЛАВНЫЙ ДОНАЛЬД */
-        #donald-wrapper { margin-top: 40px; position: relative; }
+        #donald-wrapper { margin-top: 50px; position: relative; z-index: 5; }
         #donald-btn {
-            width: 250px; height: 250px; border-radius: 50%;
+            width: 260px; height: 260px; border-radius: 50%;
             background: url('https://www.pngarts.com/files/3/Donald-Duck-PNG-Transparent-Image.png') center/80% no-repeat,
                         radial-gradient(circle, #ffd700 0%, #b8860b 100%);
-            border: 6px solid #fff; box-shadow: 0 0 40px var(--shadow);
-            cursor: pointer; transition: transform 0.05s; z-index: 10;
+            border: 6px solid #fff; box-shadow: 0 0 50px var(--shadow);
+            cursor: pointer; transition: transform 0.05s;
         }
         #donald-btn:active { transform: scale(0.95); }
 
-        /* АНИМАЦИЯ ПОЛЕТА */
+        /* АНИМАЦИЯ ПОЛЕТА ПРИ ТАПЕ */
         .fly-item {
-            position: absolute; width: 40px; height: 40px;
+            position: absolute; width: 45px; height: 45px;
             background: url('https://www.pngarts.com/files/3/Donald-Duck-PNG-Transparent-Image.png') center/contain no-repeat;
             pointer-events: none; z-index: 100;
             animation: flyToTop 0.8s ease-in forwards;
         }
         @keyframes flyToTop {
             0% { opacity: 1; transform: scale(1); }
-            100% { opacity: 0; transform: translateY(-400px) translateX(20px) scale(0.3); }
+            100% { opacity: 0; transform: translateY(-420px) translateX(30px) scale(0.2) rotate(15deg); }
         }
 
-        /* ИНТЕРФЕЙС */
-        #energy-container { width: 80%; margin-top: 25px; }
-        #bar { width: 100%; height: 12px; background: #222; border-radius: 10px; border: 1px solid var(--gold); overflow: hidden; }
+        #energy-container { width: 80%; margin-top: 30px; z-index: 5; }
+        #bar { width: 100%; height: 14px; background: #222; border-radius: 10px; border: 1px solid var(--gold); overflow: hidden; box-shadow: 0 0 10px rgba(255,215,0,0.3); }
         #fill { width: 100%; height: 100%; background: linear-gradient(90deg, #ffd700, #ff4500); transition: 0.2s; }
 
-        /* МЕНЮ */
-        #footer { position: fixed; bottom: 0; width: 100%; background: #000; padding: 10px 0; display: flex; justify-content: space-around; border-top: 2px solid var(--gold); }
-        .nav-item { text-align: center; color: #aaa; font-size: 12px; flex: 1; }
-        .nav-item.active { color: var(--gold); }
+        #footer { position: fixed; bottom: 0; width: 100%; background: #000; padding: 12px 0; display: flex; justify-content: space-around; border-top: 2px solid var(--gold); z-index: 10; box-shadow: 0 0 15px var(--gold); }
+        .nav-item { text-align: center; color: #aaa; font-size: 13px; flex: 1; cursor: pointer; }
+        .nav-item.active { color: var(--gold); font-weight: bold; text-shadow: 0 0 5px gold; }
 
-        /* ОКНА (МАГАЗИН И ДОНАТ) */
-        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,10,0.95); z-index: 1000; padding: 20px; box-sizing: border-box; overflow-y: auto; }
-        .card { background: rgba(255,215,0,0.1); border: 1px solid var(--gold); border-radius: 15px; padding: 15px; margin-bottom: 15px; display: flex; justify-content: space-between; align-items: center; }
-        .btn-buy { background: var(--gold); color: #000; border: none; padding: 10px 15px; border-radius: 8px; font-weight: bold; }
-        .close-btn { background: #ff4444; color: white; width: 100%; padding: 15px; border-radius: 10px; border: none; margin-top: 10px; }
+        /* ОКНА */
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,15,0.96); z-index: 1000; padding: 25px; box-sizing: border-box; overflow-y: auto; }
+        .card { background: rgba(255,215,0,0.08); border: 1px solid var(--gold); border-radius: 18px; padding: 18px; margin-bottom: 18px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 0 10px rgba(255,215,0,0.1); }
+        .btn-buy { background: var(--gold); color: #000; border: none; padding: 12px 20px; border-radius: 10px; font-weight: bold; cursor: pointer; font-size: 14px; }
+        .close-btn { background: #ff4444; color: white; width: 100%; padding: 16px; border-radius: 12px; border: none; margin-top: 15px; font-weight: bold; font-size: 16px; cursor: pointer; }
     </style>
 </head>
 <body>
-    <div class="money-bg"></div>
+    <canvas id="gold-rain"></canvas>
     
     <div id="header">
-        <div style="color: #aaa; font-size: 14px;">ДОХОД: +<span id="ps">0</span>/сек</div>
+        <div style="color: #ccc; font-size: 14px; margin-bottom: 5px;">ДОХОД: +<span id="ps">0</span>/сек</div>
         <div id="balance">💰 <span id="val">0</span></div>
     </div>
 
@@ -75,7 +85,7 @@
     </div>
 
     <div id="energy-container">
-        <div style="text-align: center; margin-bottom: 5px;">⚡ <span id="e">1000</span> / 1000</div>
+        <div style="text-align: center; margin-bottom: 8px; font-size: 16px;">⚡ <span id="e">1000</span> / 1000</div>
         <div id="bar"><div id="fill"></div></div>
     </div>
 
@@ -86,42 +96,90 @@
     </div>
 
     <div id="shop" class="modal">
-        <h2 style="color:var(--gold); text-align:center;">МАГАЗИН УЛУЧШЕНИЙ</h2>
+        <h1 style="color:var(--gold); text-align:center; text-shadow: 0 0 10px gold;">MINING</h1>
         <div class="card">
-            <div><b>Super Tap</b><br><small>+1 за клик</small><br>Цена: <span id="c1">100</span></div>
+            <div><b>Golden Tap</b><br><small>+1 за клик</small><br>Цена: <span id="c1">100</span></div>
             <button class="btn-buy" onclick="buy(1)">КУПИТЬ</button>
         </div>
         <div class="card">
-            <div><b>Donald Farm</b><br><small>+5 в сек.</small><br>Цена: <span id="c2">500</span></div>
+            <div><b>Duck Mine</b><br><small>+5 в сек.</small><br>Цена: <span id="c2">500</span></div>
             <button class="btn-buy" onclick="buy(2)">КУПИТЬ</button>
         </div>
         <div class="card">
-            <div><b>Duck Bank</b><br><small>+25 в сек.</small><br>Цена: <span id="c3">2000</span></div>
+            <div><b>Donald Tower</b><br><small>+30 в сек.</small><br>Цена: <span id="c3">3000</span></div>
             <button class="btn-buy" onclick="buy(3)">КУПИТЬ</button>
         </div>
-        <button class="close-btn" onclick="closeModals()">ЗАКРЫТЬ</button>
+        <button class="close-btn" onclick="closeModals()">НАЗАД</button>
     </div>
 
     <div id="donate" class="modal">
-        <h2 style="color:var(--gold); text-align:center;">КУПИТЬ МОНЕТЫ</h2>
+        <h1 style="color:var(--gold); text-align:center; text-shadow: 0 0 10px gold;">GET RICH</h1>
         <div class="card">
-            <div><b>10,000 МОНЕТ</b><br><small>Мгновенно</small></div>
-            <button class="btn-buy" style="background: #0088cc; color: white;" onclick="alert('Оплата через Telegram Stars...')">50 ⭐</button>
+            <div><b>15,000 МОНЕТ</b><br><small>На старт</small></div>
+            <button class="btn-buy" style="background: #0088cc; color: white;" onclick="alert('Оплата через Telegram Stars...')">75 ⭐</button>
         </div>
         <div class="card">
-            <div><b>100,000 МОНЕТ</b><br><small>Выгодно!</small></div>
-            <button class="btn-buy" style="background: #0088cc; color: white;" onclick="alert('Оплата через Telegram Stars...')">250 ⭐</button>
+            <div><b>200,000 МОНЕТ</b><br><small>Популярно</small></div>
+            <button class="btn-buy" style="background: #0088cc; color: white;" onclick="alert('Оплата через Telegram Stars...')">500 ⭐</button>
         </div>
-        <div class="card" style="border-color: #00ff00;">
-            <div><b>MILLIONAIRE</b><br><small>1,000,000 монет</small></div>
-            <button class="btn-buy" style="background: #0088cc; color: white;" onclick="alert('Оплата через Telegram Stars...')">1000 ⭐</button>
+        <div class="card" style="border-color: #00ff00; box-shadow: 0 0 15px #00ff00;">
+            <div><b>JACKPOT!!!</b><br><small>5,000,000 монет</small></div>
+            <button class="btn-buy" style="background: #00ff00; color: black;" onclick="alert('Оплата через Telegram Stars...')">5000 ⭐</button>
         </div>
         <button class="close-btn" onclick="closeModals()">НАЗАД</button>
     </div>
 
     <script>
+        // --- Логика Золотого Дождя ---
+        const canvas = document.getElementById('gold-rain');
+        const ctx = canvas.getContext('2d');
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+
+        const goldParticles = [];
+        const particleCount = 40; // Количество монет/купюр
+        const types = ['💰', '💵', '✨'];
+
+        class Particle {
+            constructor() {
+                this.x = Math.random() * canvas.width;
+                this.y = Math.random() * canvas.height - canvas.height;
+                this.size = Math.random() * 15 + 10;
+                this.speed = Math.random() * 2 + 1;
+                this.type = types[Math.floor(Math.random() * types.length)];
+                this.angle = Math.random() * 360;
+                this.spin = Math.random() * 2 - 1;
+            }
+            update() {
+                this.y += this.speed;
+                this.angle += this.spin;
+                if (this.y > canvas.height) {
+                    this.y = -50;
+                    this.x = Math.random() * canvas.width;
+                }
+            }
+            draw() {
+                ctx.save();
+                ctx.translate(this.x, this.y);
+                ctx.rotate(this.angle * Math.PI / 180);
+                ctx.font = `${this.size}px serif`;
+                ctx.fillText(this.type, 0, 0);
+                ctx.restore();
+            }
+        }
+
+        for (let i = 0; i < particleCount; i++) { goldParticles.push(new Particle()); }
+
+        function animateRain() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            goldParticles.forEach(p => { p.update(); p.draw(); });
+            requestAnimationFrame(animateRain);
+        }
+        animateRain();
+
+        // --- Основная Логика Игры ---
         let score = 0, energy = 1000, tap = 1, income = 0;
-        let costs = [100, 500, 2000];
+        let costs = [100, 500, 3000];
 
         function updateUI() {
             document.getElementById('val').innerText = Math.floor(score);
@@ -139,8 +197,8 @@
 
             const fly = document.createElement('div');
             fly.className = 'fly-item';
-            fly.style.left = (e.clientX - 20) + 'px';
-            fly.style.top = (e.clientY - 20) + 'px';
+            fly.style.left = (e.clientX - 22) + 'px';
+            fly.style.top = (e.clientY - 22) + 'px';
             document.body.appendChild(fly);
             setTimeout(() => fly.remove(), 800);
         });
@@ -157,17 +215,23 @@
                 score -= costs[idx];
                 if (id === 1) tap += 1;
                 if (id === 2) income += 5;
-                if (id === 3) income += 25;
-                costs[idx] = Math.floor(costs[idx] * 1.8);
+                if (id === 3) income += 30;
+                costs[idx] = Math.floor(costs[idx] * 1.9); // Удорожание
                 updateUI();
-            } else { alert('Недостаточно золота!'); }
+            } else { alert('НЕДОСТАТОЧНО ЗОЛОТА!'); }
         }
 
+        // Авто-доход и реген энергии
         setInterval(() => {
             score += income;
-            if (energy < 1000) energy = Math.min(1000, energy + 3);
+            if (energy < 1000) energy = Math.min(1000, energy + 4); // Реген быстрее
             updateUI();
         }, 1000);
+
+        window.addEventListener('resize', () => {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        });
     </script>
 </body>
 </html>
