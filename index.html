@@ -3,44 +3,111 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>Donald Gold Sheikh Edition</title>
-    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <title>Donald Gold Elite: Ultra</title>
     <style>
-        :root { --gold: #FFD700; --white: #FFFFFF; --bg: #050a0f; --accent: #ffae00; }
-        body { margin: 0; padding: 0; background: var(--bg); color: white; font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; height: 100vh; overflow: hidden; display: flex; flex-direction: column; user-select: none; }
+        :root { 
+            --gold: #FFD700; 
+            --neon: #00F2FF; 
+            --bg: #02060a; 
+            --accent: #ffae00;
+            --spring: cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
         
-        /* ЖИВОЙ КОСМИЧЕСКИЙ ФОН */
-        #canvas-bg { position: fixed; inset: 0; z-index: -1; background: radial-gradient(circle at 50% 30%, #1a1a2e 0%, #050a0f 100%); }
+        body { 
+            margin: 0; padding: 0; background: var(--bg); color: white;
+            font-family: 'SF Pro Display', -apple-system, sans-serif;
+            height: 100vh; overflow: hidden; display: flex; flex-direction: column;
+            user-select: none; -webkit-tap-highlight-color: transparent;
+        }
 
-        /* ВЕРХНЯЯ ПАНЕЛЬ */
-        header { padding: 40px 20px 10px; text-align: center; z-index: 10; }
-        #balance-box { background: rgba(255, 255, 255, 0.03); padding: 20px; border-radius: 30px; backdrop-filter: blur(20px); border: 1px solid rgba(255, 215, 0, 0.3); box-shadow: 0 15px 50px rgba(0,0,0,0.6); }
-        #balance { font-size: 48px; font-weight: 900; color: var(--gold); text-shadow: 0 0 25px rgba(255,215,0,0.5); }
-        .stats { font-size: 11px; opacity: 0.7; text-transform: uppercase; letter-spacing: 1.5px; margin-top: 8px; }
+        #canvas-bg {
+            position: fixed; inset: 0; z-index: -1;
+            background: radial-gradient(circle at 50% 40%, #102a43 0%, #02060a 100%);
+        }
 
-        /* ИГРОВАЯ ЗОНА И ВЕКТОРНЫЙ ДОНАЛЬД */
-        #game { flex: 1; display: flex; align-items: center; justify-content: center; position: relative; cursor: pointer; -webkit-tap-highlight-color: transparent; }
-        #donald-svg-container { width: 260px; height: 260px; transition: transform 0.1s; filter: drop-shadow(0 0 20px rgba(255, 215, 0, 0.2)); }
-        .tap-active { transform: scale(0.9) rotate(3deg) !important; }
+        header { padding: 50px 20px 10px; text-align: center; z-index: 10; }
+        #balance-box {
+            background: rgba(255, 255, 255, 0.03); padding: 20px; border-radius: 35px;
+            backdrop-filter: blur(25px); border: 1px solid rgba(255, 215, 0, 0.2);
+            box-shadow: 0 20px 60px rgba(0,0,0,0.7);
+            transform: translateZ(0);
+        }
+        #balance { font-size: 52px; font-weight: 900; color: var(--gold); text-shadow: 0 0 30px rgba(255,215,0,0.3); letter-spacing: -1px; }
+        .stats { font-size: 12px; opacity: 0.6; text-transform: uppercase; letter-spacing: 2px; margin-top: 10px; font-weight: 700; }
 
-        /* ЭЛЕМЕНТЫ ОДЕЖДЫ (SVG СКРЫТЫ ПО УМОЛЧАНИЮ) */
-        #acc-glasses, #acc-chain { display: none; }
+        #game {
+            flex: 1; display: flex; align-items: center; justify-content: center;
+            position: relative; perspective: 1000px;
+        }
+        
+        #donald-container { 
+            position: relative; 
+            transition: transform 0.15s var(--spring);
+            will-change: transform;
+        }
+        
+        #donald {
+            width: 300px; height: 300px; object-fit: contain;
+            /* Заменил на более "крутого" Дональда */
+            filter: drop-shadow(0 0 30px rgba(0,0,0,0.5));
+            transition: filter 0.2s ease;
+        }
 
-        /* ЭФФЕКТ ТАПА */
-        .coin-pop { position: absolute; pointer-events: none; font-size: 28px; font-weight: 900; color: var(--gold); animation: popUp 0.8s ease-out forwards; z-index: 100; }
-        @keyframes popUp { 0% { transform: translateY(0) scale(1); opacity: 1; } 100% { transform: translateY(-200px) scale(1.5); opacity: 0; } }
+        /* Эффект вспышки при клике */
+        .glow-effect {
+            position: absolute; inset: 0; border-radius: 50%;
+            background: radial-gradient(circle, rgba(255,215,0,0.4) 0%, transparent 70%);
+            opacity: 0; transition: opacity 0.1s; pointer-events: none;
+        }
 
-        /* НИЖНЕЕ МЕНЮ */
-        nav { position: fixed; bottom: 20px; left: 5%; width: 90%; height: 75px; background: rgba(10, 15, 25, 0.85); backdrop-filter: blur(20px); border-radius: 25px; border: 1px solid rgba(255,255,255,0.1); display: flex; justify-content: space-around; align-items: center; z-index: 1000; }
-        .btn { text-align: center; flex: 1; opacity: 0.4; transition: 0.4s; color: white; cursor: pointer; font-size: 12px; }
-        .btn.active { opacity: 1; color: var(--gold); transform: translateY(-8px); }
-        .btn i { font-size: 24px; display: block; margin-bottom: 4px; }
+        .tap-active #donald-container { transform: scale(0.85) rotate(-2deg); }
+        .tap-active .glow-effect { opacity: 1; }
 
-        /* ОКНА */
-        .modal { display: none; position: fixed; inset: 0; z-index: 2000; background: rgba(5, 10, 15, 0.98); padding: 30px 20px; backdrop-filter: blur(15px); }
-        .scroll-area { height: 70vh; overflow-y: auto; }
-        .card { background: rgba(255,255,255,0.05); border-radius: 20px; padding: 15px 20px; margin-bottom: 12px; display: flex; align-items: center; justify-content: space-between; border: 1px solid rgba(255,255,255,0.08); }
-        .buy-btn { background: var(--gold); border: none; padding: 10px 18px; border-radius: 12px; font-weight: 900; color: #000; }
+        .coin-pop {
+            position: absolute; pointer-events: none; font-size: 32px; font-weight: 900;
+            color: var(--gold); animation: popUp 0.7s var(--spring) forwards; z-index: 100;
+        }
+        @keyframes popUp { 
+            0% { transform: translateY(0) scale(0.5) rotate(0); opacity: 0; } 
+            20% { opacity: 1; }
+            100% { transform: translateY(-250px) scale(1.5) rotate(15deg); opacity: 0; } 
+        }
+
+        nav {
+            position: fixed; bottom: 30px; left: 5%; width: 90%; height: 80px;
+            background: rgba(15, 20, 30, 0.8); backdrop-filter: blur(30px);
+            border-radius: 30px; border: 1px solid rgba(255,255,255,0.08);
+            display: flex; justify-content: space-around; align-items: center; z-index: 1000;
+        }
+        .btn { text-align: center; flex: 1; opacity: 0.4; transition: 0.3s var(--spring); color: white; cursor: pointer; }
+        .btn.active { opacity: 1; color: var(--gold); transform: translateY(-10px) scale(1.1); }
+        .btn i { font-size: 26px; display: block; margin-bottom: 5px; }
+
+        .modal {
+            display: none; position: fixed; inset: 0; z-index: 2000;
+            background: rgba(2, 6, 10, 0.9); padding: 40px 20px;
+            backdrop-filter: blur(20px);
+            animation: slideUp 0.4s var(--spring);
+        }
+        @keyframes slideUp {
+            from { transform: translateY(100%); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        .card {
+            background: rgba(255,255,255,0.03); border-radius: 25px; padding: 20px;
+            margin-bottom: 15px; display: flex; align-items: center; 
+            border: 1px solid rgba(255,255,255,0.05); transition: 0.2s;
+        }
+        .card:active { transform: scale(0.97); background: rgba(255,255,255,0.06); }
+        
+        .buy-btn {
+            background: linear-gradient(135deg, #FFD700, #FFA500);
+            border: none; padding: 12px 20px; border-radius: 18px; font-weight: 900; 
+            color: #000; box-shadow: 0 10px 20px rgba(255,165,0,0.2);
+        }
+
+        .skin-img { width: 60px; height: 60px; object-fit: contain; margin-right: 15px; border-radius: 15px; }
     </style>
 </head>
 <body>
@@ -50,133 +117,184 @@
     <header>
         <div id="balance-box">
             <div id="balance">💰 <span id="score">0</span></div>
-            <div class="stats">ТАП: <b id="p_tap">1</b> | АВТО: <b id="pps">0</b></div>
+            <div class="stats">⚡ <span id="p_tap">1</span> / TAP — 🤖 <span id="pps">0</span> / SEC</div>
         </div>
     </header>
 
-    <div id="game" onclick="handleTap(event)">
-        <div id="donald-svg-container">
-            <svg viewBox="0 0 100 100" width="100%" height="100%">
-                <circle cx="50" cy="50" r="40" fill="#FFFFFF" stroke="#000000" stroke-width="2"/>
-                <ellipse cx="40" cy="40" rx="5" ry="8" fill="#000000"/>
-                <ellipse cx="60" cy="40" rx="5" ry="8" fill="#000000"/>
-                <path d="M 30 60 Q 50 80 70 60 L 50 65 Z" fill="#FFA500" stroke="#000000" stroke-width="2"/>
-                
-                <g id="acc-chain">
-                    <ellipse cx="50" cy="80" rx="25" ry="10" fill="none" stroke="#FFD700" stroke-width="4"/>
-                    <text x="42" y="86" font-family="Arial" font-size="16" fill="#FFD700" font-weight="bold">$</text>
-                </g>
-                <g id="acc-glasses">
-                    <path d="M 25 35 Q 35 25 45 35 L 45 45 Q 35 55 25 45 Z" fill="#000000" stroke="#FFD700" stroke-width="1"/>
-                    <path d="M 55 35 Q 65 25 75 35 L 75 45 Q 65 55 55 45 Z" fill="#000000" stroke="#FFD700" stroke-width="1"/>
-                    <line x1="45" y1="38" x2="55" y2="38" stroke="#FFD700" stroke-width="2"/>
-                </g>
-            </svg>
+    <div id="game" onmousedown="handleTap(event)" ontouchstart="handleTap(event)">
+        <div id="donald-container">
+            <div class="glow-effect"></div>
+            <img id="donald" src="https://www.pngarts.com/files/3/Donald-Duck-Classic-PNG-Image.png" alt="Donald">
         </div>
     </div>
 
     <nav>
-        <div class="btn active" onclick="show('main', this)"><i>🏠</i>ФЕРМА</div>
-        <div class="btn" onclick="show('shop', this)"><i>🚀</i>АПГРЕЙДЫ</div>
-        <div class="btn" onclick="show('skins', this)"><span>👕</span>ОДЕЖДА</div>
+        <div class="btn active" onclick="show('main', this)"><i>🏯</i>Home</div>
+        <div class="btn" onclick="show('shop', this)"><i>⚡</i>Power</div>
+        <div class="btn" onclick="show('skins', this)"><i>👑</i>Skins</div>
     </nav>
 
     <div id="shop" class="modal">
-        <h1 style="color:var(--gold); text-align:center;">МАРКЕТ</h1>
-        <div class="card"><div><b>Mega Tap</b><br><small>+5 к клику</small></div><button class="buy-btn" onclick="buy(1)">💰 <span id="c1">100</span></button></div>
-        <div class="card"><div><b>Авто-Ферма</b><br><small>+20/сек</small></div><button class="buy-btn" onclick="buy(2)">💰 <span id="c2">500</span></button></div>
-        <button onclick="show('main')" style="width:100%; padding:20px; background:none; color:var(--gold); border:none; font-weight:900;">НАЗАД</button>
+        <h1 style="color:var(--gold); text-align:center; font-size: 32px;">UPGRADES</h1>
+        <div class="card">
+            <div style="flex:1"><b>Golden Corn</b><br><small style="opacity:0.5">+2 per tap</small></div>
+            <button class="buy-btn" onclick="buyUpgrade(1)">💰 <span id="c1">100</span></button>
+        </div>
+        <div class="card">
+            <div style="flex:1"><b>Turbo Tractor</b><br><small style="opacity:0.5">+10 per sec</small></div>
+            <button class="buy-btn" onclick="buyUpgrade(2)">💰 <span id="c2">500</span></button>
+        </div>
+        <button onclick="show('main')" style="width:100%; padding:20px; background:none; color:#555; border:none; font-weight:900; margin-top:20px;">BACK TO FARM</button>
     </div>
 
     <div id="skins" class="modal">
-        <h1 style="color:var(--gold); text-align:center;">ГАРДЕРОБ</h1>
-        <div class="scroll-area" id="skins-list"></div>
-        <button onclick="show('main')" style="width:100%; padding:20px; background:none; color:var(--gold); border:none; font-weight:900;">НАЗАД</button>
+        <h1 style="color:var(--gold); text-align:center; font-size: 32px;">COLLECTION</h1>
+        <div id="skins-list"></div>
+        <button onclick="show('main')" style="width:100%; padding:20px; background:none; color:#555; border:none; font-weight:900; margin-top:20px;">BACK TO FARM</button>
     </div>
 
     <script>
-        const tg = window.Telegram.WebApp; tg.expand();
-
-        let state = JSON.parse(localStorage.getItem('donald_ultra_v1')) || {
-            score: 0, tap: 1, auto: 0, c1: 100, c2: 500, currentSkin: 0, ownedSkins: [0]
+        let state = JSON.parse(localStorage.getItem('donald_ultra_save')) || {
+            score: 0, tap: 1, auto: 0, c1: 100, c2: 500,
+            currentSkin: 0, ownedSkins: [0]
         };
 
         const skinsData = [
-            { name: "Классик", price: 0, items: [] },
-            { name: "Шейх Ультимейт", price: 50000, items: ['acc-chain', 'acc-glasses'] }
+            { name: "Classic Duck", price: 0, filter: "brightness(1)", img: "https://www.pngarts.com/files/3/Donald-Duck-Classic-PNG-Image.png" },
+            { name: "Rich Duck", price: 5000, filter: "sepia(0.5) hue-rotate(-50deg) saturate(2)", img: "https://www.pngarts.com/files/3/Donald-Duck-Classic-PNG-Image.png" },
+            { name: "Neon Duck", price: 25000, filter: "hue-rotate(180deg) brightness(1.5) drop-shadow(0 0 15px #00F2FF)", img: "https://www.pngarts.com/files/3/Donald-Duck-Classic-PNG-Image.png" },
+            { name: "Shadow Duck", price: 100000, filter: "grayscale(1) brightness(0.5) drop-shadow(0 0 20px red)", img: "https://www.pngarts.com/files/3/Donald-Duck-Classic-PNG-Image.png" },
+            { name: "GOD MODE", price: 1000000, filter: "contrast(1.5) brightness(1.2) drop-shadow(0 0 30px gold)", img: "https://www.pngarts.com/files/3/Donald-Duck-Classic-PNG-Image.png" }
         ];
 
-        function save() { localStorage.setItem('donald_ultra_v1', JSON.stringify(state)); }
+        // --- CANVAS EFFECTS ---
+        const canvas = document.getElementById('canvas-bg');
+        const ctx = canvas.getContext('2d');
+        let particles = [];
 
+        function resize() { canvas.width = window.innerWidth; canvas.height = window.innerHeight; }
+        window.addEventListener('resize', resize); resize();
+
+        class Particle {
+            constructor(x, y, type) {
+                this.x = x; this.y = y;
+                this.type = type; // 'spark' or 'star'
+                this.size = type === 'spark' ? Math.random() * 10 + 5 : Math.random() * 2;
+                this.speedY = type === 'spark' ? Math.random() * -10 - 2 : Math.random() * 2 + 1;
+                this.speedX = (Math.random() - 0.5) * 6;
+                this.opacity = 1;
+            }
+            update() {
+                this.y += this.speedY; this.x += this.speedX;
+                this.opacity -= type === 'spark' ? 0.02 : 0.005;
+            }
+            draw() {
+                ctx.globalAlpha = this.opacity;
+                ctx.fillStyle = this.type === 'spark' ? '#FFD700' : '#ffffff33';
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.size, 0, Math.PI*2);
+                ctx.fill();
+            }
+        }
+
+        function animate() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            if(Math.random() > 0.9) particles.push(new Particle(Math.random() * canvas.width, -10, 'star'));
+            particles.forEach((p, i) => {
+                p.update(); p.draw();
+                if(p.opacity <= 0) particles.splice(i, 1);
+            });
+            requestAnimationFrame(animate);
+        }
+        animate();
+
+        // --- GAME LOGIC ---
         function updateUI() {
             document.getElementById('score').innerText = Math.floor(state.score).toLocaleString();
             document.getElementById('pps').innerText = state.auto;
             document.getElementById('p_tap').innerText = state.tap;
             document.getElementById('c1').innerText = state.c1;
             document.getElementById('c2').innerText = state.c2;
-            
-            // ПРИМЕНЕНИЕ ОДЕЖДЫ (ВКЛЮЧЕНИЕ SVG СЛОЕВ)
-            // Сначала всё скрываем
-            document.getElementById('acc-chain').style.display = 'none';
-            document.getElementById('acc-glasses').style.display = 'none';
-            // Включаем нужные слои для текущего скина
-            skinsData[state.currentSkin].items.forEach(id => {
-                document.getElementById(id).style.display = 'block';
-            });
-
-            renderSkins(); save();
+            document.getElementById('donald').style.filter = skinsData[state.currentSkin].filter;
+            renderSkins();
+            localStorage.setItem('donald_ultra_save', JSON.stringify(state));
         }
 
         function handleTap(e) {
-            if (e.type === 'touchstart') e.preventDefault();
-            const clientX = e.clientX || e.touches[0].clientX;
-            const clientY = e.clientY || e.touches[0].clientY;
+            if(e.type === 'touchstart') e.preventDefault();
+            const x = e.clientX || e.touches[0].clientX;
+            const y = e.clientY || e.touches[0].clientY;
+
             state.score += state.tap;
-            tg.HapticFeedback.impactOccurred('heavy');
+            
+            // Вибрация
+            if (navigator.vibrate) navigator.vibrate(15);
 
-            const container = document.getElementById('donald-svg-container');
-            container.classList.remove('tap-active'); void container.offsetWidth; container.classList.add('tap-active');
-            setTimeout(() => container.classList.remove('tap-active'), 100);
+            // Анимация
+            document.body.classList.add('tap-active');
+            setTimeout(() => document.body.classList.remove('tap-active'), 100);
 
-            const pop = document.createElement('div');pop.className = 'coin-pop';pop.innerText = `+${state.tap}`;pop.style.left = `${clientX - 20}px`;pop.style.top = `${clientY - 20}px`;document.body.appendChild(pop);
-            setTimeout(() => pop.remove(), 800);
+            // Частицы
+            for(let i=0; i<8; i++) particles.push(new Particle(x, y, 'spark'));
+
+            // Всплывающее число
+            const pop = document.createElement('div');
+            pop.className = 'coin-pop';
+            pop.innerText = `+${state.tap}`;
+            pop.style.left = `${x - 20}px`;
+            pop.style.top = `${y - 40}px`;
+            document.body.appendChild(pop);
+            setTimeout(() => pop.remove(), 700);
+
             updateUI();
         }
 
-        function buy(type) {
-            if(type === 1 && state.score >= state.c1) { state.score -= state.c1; state.tap += 5; state.c1 = Math.floor(state.c1 * 3); }
-            else if(type === 2 && state.score >= state.c2) { state.score -= state.c2; state.auto += 20; state.c2 = Math.floor(state.c2 * 3); }
+        function buyUpgrade(type) {
+            if(type === 1 && state.score >= state.c1) {
+                state.score -= state.c1; state.tap += 2; state.c1 = Math.floor(state.c1 * 2.8);
+            } else if(type === 2 && state.score >= state.c2) {
+                state.score -= state.c2; state.auto += 10; state.c2 = Math.floor(state.c2 * 2.8);
+            }
+            if (navigator.vibrate) navigator.vibrate(40);
             updateUI();
         }
 
         function renderSkins() {
-            const list = document.getElementById('skins-list'); list.innerHTML = '';
-            skinsData.forEach((skin, index) => {
-                const isOwned = state.ownedSkins.includes(index);
-                const isActive = state.currentSkin === index;
+            const list = document.getElementById('skins-list');
+            list.innerHTML = '';
+            skinsData.forEach((skin, i) => {
+                const owned = state.ownedSkins.includes(i);
                 list.innerHTML += `
-                    <div class="card">
-                        <div><b>${skin.name}</b><br><small>${isActive ? 'НАДЕТО' : (isOwned ? 'В ГАРДЕРОБЕ' : 'ЦЕНА: ' + skin.price)}</small></div>
-                        ${!isOwned ? `<button class="buy-btn" onclick="buySkin(${index})">💰 ${skin.price}</button>` : (isActive ? '✅' : `<button class="buy-btn" style="background:#aaa" onclick="selectSkin(${index})">НАДЕТЬ</button>`)}
+                    <div class="card" onclick="${owned ? `selectSkin(${i})` : `buySkin(${i})`}">
+                        <img src="${skin.img}" class="skin-img" style="filter:${skin.filter}">
+                        <div style="flex:1"><b>${skin.name}</b><br><small>${owned ? (state.currentSkin === i ? 'Selected' : 'Owned') : 'Price: ' + skin.price}</small></div>
+                        ${!owned ? `<button class="buy-btn">💰 ${skin.price}</button>` : (state.currentSkin === i ? '✅' : '')}
                     </div>`;
             });
         }
 
-        function buySkin(index) {
-            if(state.score >= skinsData[index].price) { state.score -= skinsData[index].price; state.ownedSkins.push(index); state.currentSkin = index; updateUI(); }
+        function buySkin(i) {
+            if(state.score >= skinsData[i].price) {
+                state.score -= skinsData[i].price;
+                state.ownedSkins.push(i);
+                state.currentSkin = i;
+                updateUI();
+            }
         }
-        function selectSkin(index) { state.currentSkin = index; updateUI(); }
-        function show(id, el) { document.querySelectorAll('.modal').forEach(m => m.style.display = 'none'); if(id !== 'main') document.getElementById(id).style.display = 'block'; if(el) { document.querySelectorAll('.btn').forEach(b => b.classList.remove('active')); el.classList.add('active'); } }
 
-        setInterval(() => { if(state.auto > 0) { state.score += state.auto / 10; updateUI(); } }, 100);
+        function selectSkin(i) { state.currentSkin = i; updateUI(); }
+
+        function show(id, el) {
+            document.querySelectorAll('.modal').forEach(m => m.style.display = 'none');
+            if(id !== 'main') document.getElementById(id).style.display = 'block';
+            if(el) {
+                document.querySelectorAll('.btn').forEach(b => b.classList.remove('active'));
+                el.classList.add('active');
+            }
+        }
+
+        setInterval(() => { state.score += state.auto / 10; updateUI(); }, 100);
         updateUI();
-
-        // Фон
-        const canvas = document.getElementById('canvas-bg'); const ctx = canvas.getContext('2d');
-        function resize() { canvas.width = window.innerWidth; canvas.height = window.innerHeight; }
-        window.addEventListener('resize', resize); resize();
-        function drawBg() { ctx.clearRect(0, 0, canvas.width, canvas.height); ctx.fillStyle = 'rgba(255,255,255,0.1)'; for(let i=0; i<50; i++) ctx.fillRect(Math.random()*canvas.width, Math.random()*canvas.height, 2, 2); requestAnimationFrame(drawBg); }
-        drawBg();
     </script>
 </body>
 </html>
