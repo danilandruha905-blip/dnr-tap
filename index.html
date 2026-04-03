@@ -3,174 +3,182 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>Donald Vector Farm V13</title>
-    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <title>Donald Gold Elite</title>
     <style>
-        :root { --sky: #70c5ff; --grass: #4cd137; --gold: #fbc531; }
-        body { margin: 0; padding: 0; font-family: 'Arial Black', sans-serif; height: 100vh; overflow: hidden; background: var(--sky); display: flex; flex-direction: column; }
-
-        /* ЖИВОЙ ВЕКТОРНЫЙ ФОН */
-        #farm-scene { position: fixed; inset: 0; z-index: -1; }
-        .sun { position: absolute; top: 50px; right: 50px; width: 60px; height: 60px; background: #fff200; border-radius: 50%; box-shadow: 0 0 40px #fff200; animation: pulse 3s infinite; }
-        @keyframes pulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.1); } }
+        :root { --gold: #FFD700; --neon: #00F2FF; --bg: #050a0f; }
         
-        .hill { position: absolute; bottom: 0; background: var(--grass); border-radius: 50% 50% 0 0; }
-        .h1 { width: 120%; height: 25vh; left: -10%; bottom: -5vh; background: #44bd32; z-index: 1; }
-        .h2 { width: 100%; height: 15vh; left: 0; bottom: 5vh; background: var(--grass); opacity: 0.8; }
+        body { 
+            margin: 0; padding: 0; background: var(--bg); color: white;
+            font-family: -apple-system, system-ui, sans-serif;
+            height: 100vh; overflow: hidden; display: flex; flex-direction: column;
+        }
 
-        /* ЧИСТЫЙ ДОНАЛЬД (SVG) */
-        #game { flex: 1; display: flex; align-items: center; justify-content: center; position: relative; }
-        #donald-svg { width: 220px; height: 220px; transition: transform 0.1s; cursor: pointer; filter: drop-shadow(0 10px 15px rgba(0,0,0,0.2)); }
-        
-        .item-slot { position: absolute; left: 50%; transform: translateX(-50%); pointer-events: none; font-size: 70px; display: none; }
-        #slot-h { top: -20px; z-index: 10; }
-        #slot-g { top: 40px; z-index: 11; font-size: 50px; }
+        /* КРАСИВЫЙ ЖИВОЙ ФОН */
+        #bg-animate {
+            position: fixed; inset: 0; z-index: -1;
+            background: radial-gradient(circle at 50% 20%, #102a43 0%, #050a0f 100%);
+        }
+        .star {
+            position: absolute; background: var(--gold); border-radius: 50%;
+            opacity: 0.3; animation: drift linear infinite;
+        }
+        @keyframes drift { from { transform: translateY(100vh); } to { transform: translateY(-10vh); } }
 
-        /* ИНТЕРФЕЙС */
-        header { padding: 40px 20px 10px; z-index: 100; }
-        .stats { background: white; padding: 15px; border-radius: 25px; border: 4px solid #000; text-align: center; }
-        #balance { font-size: 40px; color: #000; display: block; margin-bottom: 10px; }
-        .bar-bg { width: 100%; height: 14px; background: #eee; border: 3px solid #000; border-radius: 10px; overflow: hidden; }
-        #bar-fill { height: 100%; width: 100%; background: #4cd137; transition: width 0.2s; }
+        /* ВЕРХНЯЯ ПАНЕЛЬ */
+        header { padding: 50px 20px 20px; text-align: center; }
+        #balance-box {
+            background: rgba(255, 255, 255, 0.05); padding: 15px; border-radius: 25px;
+            backdrop-filter: blur(15px); border: 1px solid rgba(255, 215, 0, 0.2);
+            box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+        }
+        #balance { font-size: 55px; font-weight: 900; color: var(--gold); text-shadow: 0 0 20px rgba(255,215,0,0.4); }
+        .stats { font-size: 12px; opacity: 0.6; text-transform: uppercase; letter-spacing: 2px; margin-top: 10px; }
 
-        /* МЕНЮ */
-        nav { background: #825e5c; display: flex; padding: 10px 0 30px; border-top: 5px solid #000; box-shadow: 0 -5px 15px rgba(0,0,0,0.1); }
-        .n-btn { flex: 1; text-align: center; color: white; font-size: 11px; opacity: 0.7; cursor: pointer; }
-        .n-btn.active { opacity: 1; color: var(--gold); }
-        .n-btn b { font-size: 24px; display: block; }
+        /* ИГРОВАЯ ЗОНА */
+        #game {
+            flex: 1; display: flex; align-items: center; justify-content: center;
+            position: relative; cursor: pointer; -webkit-tap-highlight-color: transparent;
+        }
+        #donald {
+            width: 280px; height: 280px; object-fit: contain;
+            filter: drop-shadow(0 10px 30px rgba(0,0,0,0.8));
+            transition: transform 0.05s cubic-bezier(0.1, 0.8, 0.3, 1);
+            z-index: 5;
+        }
+        #game:active #donald { transform: scale(0.92) rotate(-2deg); }
 
-        /* МОДАЛКИ */
-        .modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 1000; padding: 30px 20px; color: white; }
-        .row { background: #222; padding: 15px; border-radius: 20px; margin-bottom: 10px; display: flex; align-items: center; justify-content: space-between; border: 2px solid #444; }
-        .btn { background: var(--gold); border: 2px solid #000; padding: 10px 15px; border-radius: 12px; font-weight: 900; color: #000; }
+        /* ЭФФЕКТ ТАПА */
+        .coin-pop {
+            position: absolute; pointer-events: none; font-size: 30px;
+            animation: popUp 0.6s ease-out forwards; z-index: 100;
+        }
+        @keyframes popUp { 
+            0% { transform: translateY(0) scale(1); opacity: 1; } 
+            100% { transform: translateY(-150px) scale(1.5); opacity: 0; } 
+        }
+
+        /* НИЖНЕЕ МЕНЮ */
+        nav {
+            position: fixed; bottom: 25px; left: 5%; width: 90%; height: 80px;
+            background: rgba(15, 25, 35, 0.8); backdrop-filter: blur(25px);
+            border-radius: 30px; border: 1px solid rgba(255,255,255,0.1);
+            display: flex; justify-content: space-around; align-items: center; z-index: 1000;
+        }
+        .btn { text-align: center; flex: 1; opacity: 0.5; transition: 0.3s; color: white; cursor: pointer; }
+        .btn.active { opacity: 1; color: var(--gold); transform: translateY(-5px); }
+        .btn i { font-size: 24px; display: block; margin-bottom: 5px; }
+
+        /* ОКНА МОДАЛОК */
+        .modal {
+            display: none; position: fixed; inset: 0; z-index: 2000;
+            background: rgba(5, 10, 15, 0.98); padding: 40px 20px;
+        }
+        .card {
+            background: rgba(255,255,255,0.05); border-radius: 20px; padding: 20px;
+            margin-bottom: 15px; display: flex; align-items: center; justify-content: space-between;
+            border: 1px solid rgba(255,255,255,0.05);
+        }
+        .buy-btn {
+            background: linear-gradient(45deg, #FFD700, #FFA500);
+            border: none; padding: 12px 20px; border-radius: 15px; font-weight: 900; color: #000;
+        }
     </style>
 </head>
 <body>
 
-<div id="farm-scene">
-    <div class="sun"></div>
-    <div class="hill h2"></div>
-    <div class="hill h1"></div>
-</div>
+    <div id="bg-animate"></div>
 
-<header>
-    <div class="stats">
-        <span id="balance">💰 0</span>
-        <div class="bar-bg"><div id="bar-fill"></div></div>
-        <div style="font-size:12px; margin-top:5px; color:#666;">⚡️ <span id="e-val">1000</span>/1000</div>
+    <header>
+        <div id="balance-box">
+            <div id="balance">💰 <span id="score">0</span></div>
+            <div class="stats">AUTO: +<span id="pps">0</span>/SEC | TAP: +<span id="p_tap">1</span></div>
+        </div>
+    </header>
+
+    <div id="game" onclick="handleTap(event)">
+        <img id="donald" src="https://www.pngarts.com/files/3/Donald-Duck-PNG-Transparent-Image.png" alt="Donald">
     </div>
-</header>
 
-<div id="game" onclick="tap(event)">
-    <div id="donald-svg">
-        <svg viewBox="0 0 100 100" width="100%" height="100%">
-            <circle cx="50" cy="45" r="30" fill="white" stroke="black" stroke-width="2"/>
-            <circle cx="40" cy="40" r="4" fill="black"/>
-            <circle cx="60" cy="40" r="4" fill="black"/>
-            <path d="M 35 55 Q 50 75 65 55" fill="#fbc531" stroke="black" stroke-width="2"/>
-            <path d="M 20 80 Q 50 100 80 80" fill="white" stroke="black" stroke-width="2"/>
-        </svg>
-        <div id="slot-h" class="item-slot"></div>
-        <div id="slot-g" class="item-slot"></div>
+    <nav>
+        <div class="btn active" onclick="show('main', this)"><i>🏠</i>Farm</div>
+        <div class="btn" onclick="show('shop', this)"><i>🚀</i>Upgrade</div>
+        <div class="btn" onclick="show('cases', this)"><i>🎰</i>Cases</div>
+    </nav>
+
+    <div id="shop" class="modal">
+        <h1 style="color:var(--gold); text-align:center;">MARKET</h1>
+        <div class="card">
+            <div><b>Golden Corn</b><br><small>+2 per tap</small></div>
+            <button class="buy-btn" onclick="buy(1)">💰 <span id="c1">100</span></button>
+        </div>
+        <div class="card">
+            <div><b>Tractor</b><br><small>+10 per sec</small></div>
+            <button class="buy-btn" onclick="buy(2)">💰 <span id="c2">500</span></button>
+        </div>
+        <button onclick="show('main')" style="width:100%; padding:20px; background:none; color:#555; border:none; font-weight:900;">CLOSE</button>
     </div>
-</div>
 
-<nav>
-    <div class="n-btn active" onclick="show('main',this)"><b>🏠</b>Farm</div>
-    <div class="n-btn" onclick="show('ward',this)"><b>👕</b>Одежда</div>
-    <div class="n-btn" onclick="show('shop',this)"><b>🚀</b>Empire</div>
-</nav>
+    <script>
+        let state = JSON.parse(localStorage.getItem('donald_save')) || {
+            score: 0, tap: 1, auto: 0, c1: 100, c2: 500
+        };
 
-<div id="ward" class="modal">
-    <h2 style="text-align:center">ГАРДЕРОБ</h2>
-    <div id="ward-items"></div>
-    <button onclick="show('main')" style="width:100%; padding:20px; background:none; border:none; color:gray;">ЗАКРЫТЬ</button>
-</div>
-
-<div id="shop" class="modal">
-    <h2 style="text-align:center">МАГАЗИН</h2>
-    <div class="row"><span>Тап +5</span> <button class="btn" onclick="buy('t')">💰 <span id="c-t">100</span></button></div>
-    <div class="row"><span>Авто +20</span> <button class="btn" onclick="buy('a')">💰 <span id="c-a">500</span></button></div>
-    <button onclick="show('main')" style="width:100%; padding:20px; background:none; border:none; color:gray;">ЗАКРЫТЬ</button>
-</div>
-
-<script>
-    const tg = window.Telegram.WebApp;
-    tg.expand();
-
-    let d = JSON.parse(localStorage.getItem('d_v13')) || {
-        score:0, tap:1, auto:0, ct:100, ca:500, e:1000,
-        inv:[], eq:{h:null, g:null}
-    };
-
-    const items = [
-        {id:'h1', cat:'h', name:'Кепка', sym:'🧢', p:1000},
-        {id:'h2', cat:'h', name:'Шляпа', sym:'🎩', p:5000},
-        {id:'g1', cat:'g', name:'Очки', sym:'🕶', p:2500},
-        {id:'g2', cat:'g', name:'Маска', sym:'👺', p:10000}
-    ];
-
-    function update() {
-        document.getElementById('balance').innerText = '💰 ' + Math.floor(d.score);
-        document.getElementById('e-val').innerText = Math.floor(d.e);
-        document.getElementById('bar-fill').style.width = (d.e/10) + '%';
-        document.getElementById('c-t').innerText = d.ct;
-        document.getElementById('c-a').innerText = d.ca;
-
-        ['h','g'].forEach(c => {
-            const el = document.getElementById('slot-'+c);
-            if(d.eq[c]) {
-                el.innerText = items.find(i=>i.id===d.eq[c]).sym;
-                el.style.display = 'block';
-            } else el.style.display = 'none';
-        });
-
-        const list = document.getElementById('ward-items');
-        list.innerHTML = '';
-        items.forEach(i => {
-            const has = d.inv.includes(i.id), on = d.eq[i.cat] === i.id;
-            list.innerHTML += `<div class="row"><span>${i.sym} ${i.name}</span>
-                <button class="btn" onclick="manage('${i.cat}','${i.id}',${i.p})" style="background:${on?'#4cd137':(has?'#aaa':'#fbc531')}">
-                ${on?'СНЯТЬ':(has?'НАДЕТЬ':'КУПИТЬ '+i.p)}</button></div>`;
-        });
-        localStorage.setItem('d_v13', JSON.stringify(d));
-    }
-
-    function tap(e) {
-        if(d.e < 1) return;
-        d.score += d.tap; d.e -= 1;
-        tg.HapticFeedback.impactOccurred('heavy');
-        
-        const svg = document.getElementById('donald-svg');
-        svg.style.transform = 'scale(0.8) rotate(5deg)';
-        setTimeout(()=>svg.style.transform='scale(1) rotate(0deg)', 80);
-        
-        update();
-    }
-
-    function buy(type) {
-        if(type==='t' && d.score>=d.ct){ d.score-=d.ct; d.tap+=5; d.ct*=3; }
-        if(type==='a' && d.score>=d.ca){ d.score-=d.ca; d.auto+=20; d.ca*=3; }
-        update();
-    }
-
-    function manage(cat, id, p) {
-        if(!d.inv.includes(id)) {
-            if(d.score >= p) { d.score -= p; d.inv.push(id); } else return;
+        // Создаем живой фон
+        const bg = document.getElementById('bg-animate');
+        for(let i=0; i<30; i++) {
+            let star = document.createElement('div');
+            star.className = 'star';
+            star.style.width = star.style.height = Math.random() * 3 + 'px';
+            star.style.left = Math.random() * 100 + 'vw';
+            star.style.animationDuration = Math.random() * 3 + 2 + 's';
+            star.style.animationDelay = Math.random() * 5 + 's';
+            bg.appendChild(star);
         }
-        d.eq[cat] = (d.eq[cat] === id) ? null : id;
-        update();
-    }
 
-    function show(id, b) {
-        document.querySelectorAll('.modal').forEach(m=>m.style.display='none');
-        if(id!=='main') document.getElementById(id).style.display='block';
-        document.querySelectorAll('.n-btn').forEach(n=>n.classList.remove('active'));
-        if(b) b.classList.add('active');
-    }
+        function save() { localStorage.setItem('donald_save', JSON.stringify(state)); }
 
-    setInterval(() => { d.score += d.auto/10; if(d.e < 1000) d.e += 1.5; update(); }, 100);
-    update();
-</script>
+        function updateUI() {
+            document.getElementById('score').innerText = Math.floor(state.score);
+            document.getElementById('pps').innerText = state.auto;
+            document.getElementById('p_tap').innerText = state.tap;
+            document.getElementById('c1').innerText = state.c1;
+            document.getElementById('c2').innerText = state.c2;
+            save();
+        }
+
+        function handleTap(e) {
+            state.score += state.tap;
+            updateUI();
+            
+            const coin = document.createElement('div');
+            coin.className = 'coin-pop';
+            coin.innerText = '💰';
+            coin.style.left = e.clientX + 'px';
+            coin.style.top = e.clientY + 'px';
+            document.body.appendChild(coin);
+            setTimeout(() => coin.remove(), 600);
+        }
+
+        function buy(type) {
+            if(type === 1 && state.score >= state.c1) {
+                state.score -= state.c1; state.tap += 2; state.c1 *= 3;
+            } else if(type === 2 && state.score >= state.c2) {
+                state.score -= state.c2; state.auto += 10; state.c2 *= 3;
+            }
+            updateUI();
+        }
+
+        function show(id, el) {
+            document.querySelectorAll('.modal').forEach(m => m.style.display = 'none');
+            if(id !== 'main') document.getElementById(id).style.display = 'block';
+            if(el) {
+                document.querySelectorAll('.btn').forEach(b => b.classList.remove('active'));
+                el.classList.add('active');
+            }
+        }
+
+        setInterval(() => { state.score += state.auto / 10; updateUI(); }, 100);
+        updateUI();
+    </script>
 </body>
 </html>
