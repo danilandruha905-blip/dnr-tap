@@ -3,145 +3,166 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>Donald Gold Luxury V9</title>
+    <title>Donald Cartoon Farm V11</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
-        :root { --gold: #FFD700; --neon: #00ff88; --accent: #ff00ff; }
+        :root { --gold: #FFD700; --sky: #40a0ff; --grass: #55ee33; --wood: #8b4513; }
         
         body { 
             margin: 0; padding: 0; color: white; font-family: 'Arial Black', sans-serif;
             height: 100vh; overflow: hidden; display: flex; flex-direction: column;
-            background: #000;
+            background: var(--sky);
         }
 
-        /* ЖИВОЙ АНИМИРОВАННЫЙ ФОН */
-        #bg {
-            position: fixed; inset: 0; z-index: -1;
-            background: linear-gradient(45deg, #050505, #0a192f, #1a0a2f, #050505);
-            background-size: 400% 400%;
-            animation: gradientBG 10s ease infinite;
+        /* ЯРКИЙ МУЛЬТЯШНЫЙ ФОН ФЕРМЫ */
+        #cartoon-bg {
+            position: fixed; inset: 0; z-index: -2;
+            background: linear-gradient(to top, var(--sky) 0%, #a0d8ff 100%);
         }
-        @keyframes gradientBG { 0% {background-position: 0% 50%;} 50% {background-position: 100% 50%;} 100% {background-position: 0% 50%;} }
 
-        .star { position: absolute; background: white; border-radius: 50%; opacity: 0.5; animation: twinkle var(--d) linear infinite; }
-        @keyframes twinkle { from { transform: translateY(100vh); } to { transform: translateY(-10vh); } }
-
-        /* ИНТЕРФЕЙС */
-        header { padding: 50px 20px 10px; text-align: center; }
-        #balance-card {
-            background: rgba(255, 255, 255, 0.1); padding: 20px; border-radius: 30px;
-            backdrop-filter: blur(15px); border: 2px solid var(--gold);
-            box-shadow: 0 0 30px rgba(255, 215, 0, 0.3);
-        }
-        #balance { font-size: 55px; color: var(--gold); text-shadow: 2px 2px 0 #000; }
+        /* Облака */
+        .cloud { position: absolute; background: white; border-radius: 50px; opacity: 0.8; animation: moveCloud linear infinite; }
+        .cloud::before, .cloud::after { content: ''; position: absolute; background: inherit; border-radius: 50%; }
         
-        .energy-bar-bg { width: 100%; height: 15px; background: #222; border-radius: 10px; margin-top: 10px; overflow: hidden; border: 1px solid #444; }
-        #energy-fill { height: 100%; width: 100%; background: linear-gradient(90deg, var(--neon), var(--gold)); transition: width 0.2s; }
+        .c1 { width: 100px; height: 40px; top: 15vh; animation-duration: 15s; }
+        .c1::before { width: 50px; height: 50px; top: -25px; left: 15px; }
+        
+        .c2 { width: 150px; height: 60px; top: 25vh; left: -150px; animation-duration: 25s; animation-delay: 5s; }
+        .c2::before { width: 70px; height: 70px; top: -35px; left: 20px; }
+        .c2::after { width: 60px; height: 60px; top: -20px; left: 70px; }
+
+        @keyframes moveCloud { from { transform: translateX(-10vw); } to { transform: translateX(110vw); } }
+
+        /* Холмы */
+        #hills { position: fixed; bottom: -5vh; width: 100%; height: 25vh; z-index: -1; pointer-events: none; }
+        .hill { position: absolute; bottom: 0; background: #33cc22; border-radius: 50% 50% 0 0; }
+        .h1 { width: 60vw; height: 15vh; left: -10vw; background: #44dd33; }
+        .h2 { width: 70vw; height: 18vh; right: -20vw; background: #33cc22; }
+
+        /* Забор и Мельница */
+        #scenery { position: fixed; bottom: 18vh; width: 100%; height: 10vh; z-index: -1; display: flex; align-items: flex-end; justify-content: space-around; }
+        .fence { width: 50vw; height: 5vh; border-bottom: 8px solid var(--wood); border-top: 8px solid var(--wood); position: relative; }
+        .fence::after { content: '||||||||'; font-size: 20px; color: var(--wood); letter-spacing: 5px; }
+        
+        #mill { width: 50px; height: 80px; background: #aa6633; border-radius: 5px; position: relative; }
+        #mill-blades { position: absolute; top: 10px; left: 10px; width: 30px; height: 30px; border: 4px solid white; border-radius: 50%; animation: rotateMill 4s linear infinite; }
+        #mill-blades::after { content: ''; position: absolute; top: -15px; left: 13px; width: 4px; height: 60px; background: white; }
+        @keyframes rotateMill { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+
+        /* Летящие кукурузы и монеты (снизу вверх) */
+        .farm-particle { position: absolute; bottom: -50px; pointer-events: none; animation: riseUp linear infinite; }
+        @keyframes riseUp { 0% { transform: translateY(0) rotate(0deg); opacity: 0; } 10% { opacity: 0.8; } 90% { opacity: 0.8; } 100% { transform: translateY(-110vh) rotate(360deg); opacity: 0; } }
+
+        /* ИНТЕРФЕЙС (теперь ярче) */
+        header { padding: 45px 20px 10px; text-align: center; }
+        #balance-card {
+            background: rgba(255, 255, 255, 0.4); padding: 20px; border-radius: 30px;
+            backdrop-filter: blur(10px); border: 3px solid #000;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+        #balance { font-size: 50px; color: #000; text-shadow: 2px 2px 0 var(--gold); }
+        
+        .energy-bg { width: 100%; height: 15px; background: #fff; border-radius: 10px; margin-top: 10px; overflow: hidden; border: 2px solid #000; }
+        #energy-fill { height: 100%; width: 100%; background: linear-gradient(90deg, #55ee00, var(--gold)); transition: width 0.2s; }
 
         /* ПЕРСОНАЖ И ОДЕЖДА */
         #game-area { flex: 1; display: flex; align-items: center; justify-content: center; position: relative; }
-        #character-container { position: relative; width: 300px; height: 300px; transition: transform 0.1s cubic-bezier(0.17, 0.89, 0.32, 1.49); }
-        .character-layer { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; pointer-events: none; }
+        #char-cont { position: relative; width: 280px; height: 280px; transition: 0.05s ease; cursor: pointer; }
+        .layer { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; pointer-events: none; -webkit-user-drag: none; }
         
-        /* ЭФФЕКТ ПРЫЖКА */
-        .tap-bounce { transform: scale(0.85) translateY(20px); }
+        /* Исправление положения одежды */
+        #layer-head { z-index: 10; transform: translateY(-38px) scale(0.63); }
+        #layer-glasses { z-index: 9; transform: translateY(-31px) scale(0.63); }
+        #layer-shirt { z-index: 8; transform: translateY(15px) scale(0.88); }
 
-        /* ЛЕТЯЩИЕ МОНЕТЫ */
-        .fly-coin { position: fixed; font-size: 24px; pointer-events: none; animation: flyUp 0.7s ease-out forwards; z-index: 1000; }
-        @keyframes flyUp { 0% { opacity: 1; transform: translateY(0); } 100% { opacity: 0; transform: translateY(-150px) scale(1.5); } }
+        .bump { transform: scale(1.1) translateY(-30px); }
 
-        /* НИЖНЕЕ МЕНЮ */
-        nav { position: fixed; bottom: 20px; width: 94%; left: 3%; height: 80px; background: rgba(0,0,0,0.8); border-radius: 25px; display: flex; border: 2px solid rgba(255,255,255,0.1); backdrop-filter: blur(20px); }
-        .nav-item { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; opacity: 0.5; transition: 0.3s; cursor: pointer; }
-        .nav-item.active { opacity: 1; color: var(--gold); transform: translateY(-5px); }
+        /* НИЖНЕЕ МЕНЮ (теперь мультяшное) */
+        nav { position: fixed; bottom: 15px; width: 92%; left: 4%; height: 70px; background: var(--wood); border-radius: 20px; display: flex; border: 3px solid #000; backdrop-filter: blur(10px); z-index: 100; box-shadow: 0 5px 15px rgba(0,0,0,0.3); }
+        .nav-btn { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; opacity: 0.6; transition: 0.2s; cursor: pointer; color: white; font-size: 11px; font-weight: bold; }
+        .nav-btn.active { opacity: 1; color: var(--gold); transform: translateY(-3px); text-shadow: 1px 1px 0 #000; }
+        .nav-btn span { font-size: 20px; display: block; margin-bottom: 3px; }
 
-        /* МАГАЗИН ОДЕЖДЫ */
-        .modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.95); z-index: 2000; padding: 40px 20px; overflow-y: auto; }
-        .item-card { background: #111; border-radius: 20px; padding: 15px; margin-bottom: 10px; display: flex; align-items: center; justify-content: space-between; border: 1px solid #333; }
-        .buy-btn { background: var(--gold); border: none; padding: 10px 20px; border-radius: 12px; font-weight: bold; cursor: pointer; }
-        .buy-btn.active { background: var(--neon); }
+        /* ОКНА */
+        .modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 2000; padding: 40px 20px; overflow-y: auto; }
+        .item-card { background: rgba(255,255,255,0.05); border-radius: 15px; padding: 15px; margin-bottom: 10px; display: flex; align-items: center; justify-content: space-between; border: 1px solid rgba(255,255,255,0.1); }
+        .buy-btn { background: var(--gold); border: 2px solid #000; padding: 10px 18px; border-radius: 10px; font-weight: bold; color: black; cursor: pointer; }
+        .buy-btn.active { background: #2ecc71; color: white; }
     </style>
 </head>
 <body>
 
-<div id="bg"></div>
+<div id="cartoon-bg">
+    <div class="cloud c1"></div>
+    <div class="cloud c2"></div>
+    <div id="hills"><div class="hill h1"></div><div class="hill h2"></div></div>
+    <div id="scenery"><div class="fence"></div><div id="mill"><div id="mill-blades"></div></div></div>
+</div>
 
 <header>
     <div id="balance-card">
         <div id="balance">💰 <span id="score">0</span></div>
-        <div class="energy-bar-bg"><div id="energy-fill"></div></div>
-        <div style="font-size: 14px; margin-top: 5px;">⚡️ <span id="e-val">1000</span>/1000</div>
+        <div class="energy-bg"><div id="energy-fill"></div></div>
+        <div style="font-size:12px; margin-top:5px; color:#000;">⚡️ <span id="e-val">1000</span>/1000</div>
     </div>
 </header>
 
-<div id="game-area" onclick="handleTap(event)">
-    <div id="character-container">
-        <img class="character-layer" src="https://www.pngarts.com/files/3/Donald-Duck-PNG-Transparent-Image.png">
-        <img id="layer-glasses" class="character-layer" src="" style="display: none;">
-        <img id="layer-shirt" class="character-layer" src="" style="display: none;">
-        <img id="layer-acc" class="character-layer" src="" style="display: none;">
+<div id="game-area" onmousedown="tap(event)" ontouchstart="tap(event)">
+    <div id="char-cont">
+        <img class="layer" src="https://upload.wikimedia.org/wikipedia/en/thumb/b/b4/Donald_Duck.svg/220px-Donald_Duck.svg.png">
+        <img id="layer-head" class="layer" src="" style="display: none;">
+        <img id="layer-glasses" class="layer" src="" style="display: none;">
+        <img id="layer-shirt" class="layer" src="" style="display: none;">
     </div>
 </div>
 
 <nav>
-    <div class="nav-item active" onclick="show('main', this)">🏠<span>Farm</span></div>
-    <div class="nav-item" onclick="show('shop', this)">🚀<span>Upgrades</span></div>
-    <div class="nav-item" onclick="show('wardrobe', this)">👕<span>Одежда</span></div>
-    <div class="nav-item" onclick="show('donate', this)">💎<span>Donate</span></div>
+    <div class="nav-btn active" onclick="show('main', this)"><span>🏠</span>Farm</div>
+    <div class="nav-btn" onclick="show('wardrobe', this)"><span>👕</span>Одежда</div>
+    <div class="nav-btn" onclick="show('shop', this)"><span>🚀</span>Empire</div>
+    <a href="https://t.me/wallet?startapp=transfer-UQAkVfSEE83-fup86oEFV6a7rxgD5DKPfoEfVVDUk8C1WeEQ" target="_blank" class="nav-btn" style="text-decoration:none;"><span>💎</span>Donate</a>
 </nav>
 
 <div id="wardrobe" class="modal">
     <h2 style="color:var(--gold); text-align:center;">ГАРДЕРОБ</h2>
-    
-    <h3 style="color:var(--neon)">ОЧКИ</h3>
-    <div id="category-glasses"></div>
-
-    <h3 style="color:var(--neon)">ОДЕЖДА</h3>
-    <div id="category-shirt"></div>
-
-    <button onclick="show('main')" style="width:100%; padding:20px; color:gray; background:none; border:none; font-weight:bold;">ВЕРНУТЬСЯ</button>
+    <h3 style="color:#00ff88">ГОЛОВНЫЕ УБОРЫ</h3><div id="cat-head"></div>
+    <h3 style="color:#00ff88">ОЧКИ</h3><div id="cat-glasses"></div>
+    <h3 style="color:#00ff88">КОФТЫ</h3><div id="cat-shirt"></div>
+    <button onclick="show('main')" style="width:100%; padding:20px; color:gray; background:none; border:none; font-weight:bold;">ЗАКРЫТЬ</button>
 </div>
 
 <div id="shop" class="modal">
     <h2 style="color:var(--gold); text-align:center;">ПРОКАЧКА</h2>
-    <div class="item-card"><div><b>Усиленный Тап</b><br><small>+5 к клику</small></div><button class="buy-btn" onclick="buyUpgrade('tap')">💰 <span id="c-tap">100</span></button></div>
-    <div class="item-card"><div><b>Авто-Ферма</b><br><small>+20/сек</small></div><button class="buy-btn" onclick="buyUpgrade('auto')">💰 <span id="c-auto">500</span></button></div>
-    <button onclick="show('main')" style="width:100%; padding:20px; color:gray; background:none; border:none;">ВЕРНУТЬСЯ</button>
-</div>
-
-<div id="donate" class="modal">
-    <h2 style="color:var(--gold); text-align:center;">DONATE</h2>
-    <div class="item-card">
-        <div><b>Крипто-Пак</b><br><small>Поддержать автора</small></div>
-        <a href="https://t.me/wallet?startapp=transfer-UQAkVfSEE83-fup86oEFV6a7rxgD5DKPfoEfVVDUk8C1WeEQ" class="buy-btn" style="text-decoration:none;">SEND TON</a>
-    </div>
-    <button onclick="show('main')" style="width:100%; padding:20px; color:gray; background:none; border:none;">ВЕРНУТЬСЯ</button>
+    <div class="item-card"><div><b>Mega Tap</b><br><small>+5 к клику</small></div><button class="buy-btn" onclick="upgrade('tap')">💰 <span id="c-tap">100</span></button></div>
+    <div class="item-card"><div><b>Авто-Комбайн</b><br><small>+20/сек</small></div><button class="buy-btn" onclick="upgrade('auto')">💰 <span id="c-auto">500</span></button></div>
+    <button onclick="show('main')" style="width:100%; padding:20px; color:gray; background:none; border:none;">ЗАКРЫТЬ</button>
 </div>
 
 <script>
     const tg = window.Telegram.WebApp;
     tg.expand();
 
-    let g = JSON.parse(localStorage.getItem('donald_v9')) || {
-        score: 0, tap: 1, auto: 0, cTap: 100, cAuto: 500,
-        energy: 1000,
-        ownedItems: [],
-        equipped: { glasses: null, shirt: null, acc: null }
+    let g = JSON.parse(localStorage.getItem('donald_v11')) || {
+        score: 0, tap: 1, auto: 0, cTap: 100, cAuto: 500, energy: 1000,
+        items: [], equipped: { head: null, glasses: null, shirt: null }
     };
 
-    // ДАННЫЕ ОДЕЖДЫ
-    const wardrobeData = {
+    const db = {
+        head: [
+            { id: 'h1', name: "Кепка Фермера", img: "https://upload.wikimedia.org/wikipedia/commons/thumb/c/ca/Cap_icon.svg/120px-Cap_icon.svg.png", price: 1000 },
+            { id: 'h2', name: "Шляпа Магната", img: "https://upload.wikimedia.org/wikipedia/commons/thumb/b/b3/Top_hat_icon.svg/120px-Top_hat_icon.svg.png", price: 15000 }
+        ],
         glasses: [
-            { id: 'g1', name: "Черные очки", img: "https://www.pngall.com/wp-content/uploads/5/Sunglasses-PNG-Free-Download.png", price: 1000 },
-            { id: 'g2', name: "Золотые очки", img: "https://www.pngall.com/wp-content/uploads/5/Sunglasses-PNG-Transparent-HD-Photo.png", price: 5000 }
+            { id: 'g1', name: "Черные очки", img: "https://upload.wikimedia.org/wikipedia/commons/thumb/c/c5/Solar_glasses_icon.svg/120px-Solar_glasses_icon.svg.png", price: 3000 },
+            { id: 'g2', name: "Маска V", img: "https://upload.wikimedia.org/wikipedia/commons/thumb/a/a2/Anon-mask.svg/120px-Anon-mask.svg.png", price: 75000 }
         ],
         shirt: [
-            { id: 's1', name: "Худи Стиляги", img: "https://www.pngall.com/wp-content/uploads/2/T-Shirt-PNG-Clipart.png", price: 3000 },
-            { id: 's2', name: "Кофта Богача", img: "https://www.pngall.com/wp-content/uploads/2/T-Shirt-PNG-Transparent-HD-Photo.png", price: 15000 }
+            { id: 's1', name: "Худи Фермы", img: "https://upload.wikimedia.org/wikipedia/commons/thumb/f/f6/Hoodie_icon.svg/120px-Hoodie_icon.svg.png", price: 10000 },
+            { id: 's2', name: "Кофта Rich", img: "https://upload.wikimedia.org/wikipedia/commons/thumb/a/a0/Business_shirt_icon.svg/120px-Business_shirt_icon.svg.png", price: 50000 }
         ]
     };
 
-    function save() { localStorage.setItem('donald_v9', JSON.stringify(g)); }
+    function save() { localStorage.setItem('donald_v11', JSON.stringify(g)); }
 
     function update() {
         document.getElementById('score').innerText = Math.floor(g.score);
@@ -150,97 +171,79 @@
         document.getElementById('c-tap').innerText = g.cTap;
         document.getElementById('c-auto').innerText = g.cAuto;
         
-        // Обновляем слои одежды
-        ['glasses', 'shirt'].forEach(cat => {
+        ['head', 'glasses', 'shirt'].forEach(cat => {
             const el = document.getElementById('layer-' + cat);
             if (g.equipped[cat]) {
-                const item = wardrobeData[cat].find(i => i.id === g.equipped[cat]);
-                el.src = item.img;
+                el.src = db[cat].find(i => i.id === g.equipped[cat]).img;
                 el.style.display = 'block';
-            } else {
-                el.style.display = 'none';
-            }
+            } else el.style.display = 'none';
         });
         renderWardrobe();
         save();
     }
 
-    function handleTap(e) {
-        if (g.energy < 1) return;
+    function tap(e) {
+        if (g.energy < 1) { tg.HapticFeedback.notificationOccurred('warning'); return; }
+        if (e.type === 'touchstart') e.preventDefault();
         g.score += g.tap; g.energy -= 1;
         tg.HapticFeedback.impactOccurred('heavy');
-
-        const cont = document.getElementById('character-container');
-        cont.classList.add('tap-bounce');
-        setTimeout(() => cont.classList.remove('tap-bounce'), 100);
-
+        const cont = document.getElementById('char-cont');
+        cont.classList.remove('bump'); void cont.offsetWidth; cont.classList.add('bump');
         const x = e.clientX || e.touches[0].clientX;
         const y = e.clientY || e.touches[0].clientY;
-        const coin = document.createElement('div');
-        coin.className = 'fly-coin';
-        coin.innerText = '💰 +' + g.tap;
-        coin.style.left = x + 'px';
-        coin.style.top = y + 'px';
-        document.body.appendChild(coin);
-        setTimeout(() => coin.remove(), 700);
+        const pop = document.createElement('div');
+        pop.style.cssText = `position:fixed; left:${x}px; top:${y}px; color:#000; font-weight:bold; font-size:24px; pointer-events:none; z-index:1000; animation: riseUp 0.6s forwards;`;
+        pop.innerText = '+' + g.tap;
+        document.body.appendChild(pop);
+        setTimeout(() => pop.remove(), 600);
         update();
     }
 
-    function buyUpgrade(type) {
+    function upgrade(type) {
         if (type === 'tap' && g.score >= g.cTap) { g.score -= g.cTap; g.tap += 5; g.cTap *= 3; }
         if (type === 'auto' && g.score >= g.cAuto) { g.score -= g.cAuto; g.auto += 20; g.cAuto *= 3; }
         update();
     }
 
     function renderWardrobe() {
-        ['glasses', 'shirt'].forEach(cat => {
-            const div = document.getElementById('category-' + cat);
-            div.innerHTML = '';
-            wardrobeData[cat].forEach(item => {
-                const isOwned = g.ownedItems.includes(item.id);
-                const isEquipped = g.equipped[cat] === item.id;
-                div.innerHTML += `
-                    <div class="item-card">
-                        <div><b>${item.name}</b><br><small>${isOwned ? 'В наличии' : 'Цена: '+item.price}</small></div>
-                        <button class="buy-btn ${isEquipped ? 'active' : ''}" onclick="processItem('${cat}', '${item.id}', ${item.price})">
-                            ${isEquipped ? 'СНЯТЬ' : (isOwned ? 'НАДЕТЬ' : 'КУПИТЬ')}
-                        </button>
-                    </div>`;
+        ['head', 'glasses', 'shirt'].forEach(cat => {
+            const div = document.getElementById('cat-' + cat); div.innerHTML = '';
+            db[cat].forEach(item => {
+                const bought = g.items.includes(item.id), wearing = g.equipped[cat] === item.id;
+                div.innerHTML += `<div class="item-card"><div><b>${item.name}</b><br><small>${bought ? 'В наличии' : 'Цена: '+item.price}</small></div>
+                <button class="buy-btn ${wearing ? 'active' : ''}" onclick="manageItem('${cat}', '${item.id}', ${item.price})">${wearing ? 'СНЯТЬ' : (bought ? 'НАДЕТЬ' : 'КУПИТЬ')}</button></div>`;
             });
         });
     }
 
-    function processItem(cat, id, price) {
-        if (!g.ownedItems.includes(id)) {
-            if (g.score >= price) { g.score -= price; g.ownedItems.push(id); } else return;
+    function manageItem(cat, id, price) {
+        if (!g.items.includes(id)) {
+            if (g.score >= price) { g.score -= price; g.items.push(id); tg.HapticFeedback.notificationOccurred('success'); } else { tg.HapticFeedback.notificationOccurred('error'); return; }
         }
         g.equipped[cat] = (g.equipped[cat] === id) ? null : id;
+        tg.HapticFeedback.impactOccurred('light');
         update();
     }
 
     function show(id, el) {
         document.querySelectorAll('.modal').forEach(m => m.style.display = 'none');
         if (id !== 'main') document.getElementById(id).style.display = 'block';
-        document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+        document.querySelectorAll('.nav-btn').forEach(n => n.classList.remove('active'));
         if (el) el.classList.add('active');
     }
 
-    // Фоновые звезды
+    const symbols = ['🌽', '💰', '💎', '🪙'];
     for(let i=0; i<30; i++) {
-        let s = document.createElement('div');
-        s.className = 'star';
-        s.style.left = Math.random() * 100 + 'vw';
-        s.style.width = s.style.height = Math.random() * 4 + 'px';
-        s.style.setProperty('--d', (Math.random() * 3 + 2) + 's');
-        document.getElementById('bg').appendChild(s);
+        let p = document.createElement('div'); p.className = 'farm-particle';
+        p.innerText = symbols[Math.floor(Math.random() * symbols.length)];
+        p.style.left = Math.random() * 100 + 'vw';
+        p.style.fontSize = Math.random() * 20 + 15 + 'px';
+        p.style.animationDuration = Math.random() * 3 + 3 + 's';
+        p.style.animationDelay = Math.random() * 5 + 's';
+        document.body.appendChild(p);
     }
 
-    setInterval(() => {
-        g.score += g.auto / 10;
-        if (g.energy < 1000) g.energy += 1.5;
-        update();
-    }, 100);
-
+    setInterval(() => { g.score += g.auto / 10; if (g.energy < 1000) g.energy += 1; update(); }, 100);
     update();
 </script>
 </body>
