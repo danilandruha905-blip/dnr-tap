@@ -3,189 +3,173 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>Donald Farm Fixed V12</title>
+    <title>Donald Vector Farm V13</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
-        :root { --gold: #FFD700; --sky: #70c5ff; --grass: #44cc22; }
+        :root { --sky: #70c5ff; --grass: #4cd137; --gold: #fbc531; }
         body { margin: 0; padding: 0; font-family: 'Arial Black', sans-serif; height: 100vh; overflow: hidden; background: var(--sky); display: flex; flex-direction: column; }
 
-        /* МУЛЬТЯШНЫЙ ФОН */
-        #sky-bg { position: fixed; inset: 0; z-index: -2; background: linear-gradient(to bottom, #40a0ff, #a0d8ff); }
-        .cloud { position: absolute; background: white; border-radius: 50px; opacity: 0.9; animation: move linear infinite; }
-        @keyframes move { from { transform: translateX(-120px); } to { transform: translateX(110vw); } }
-
-        #ground { position: fixed; bottom: 0; width: 100%; height: 200px; background: var(--grass); border-top: 5px solid #228811; z-index: -1; border-radius: 50% 50% 0 0 / 20% 20% 0 0; transform: scaleX(1.2); }
+        /* ЖИВОЙ ВЕКТОРНЫЙ ФОН */
+        #farm-scene { position: fixed; inset: 0; z-index: -1; }
+        .sun { position: absolute; top: 50px; right: 50px; width: 60px; height: 60px; background: #fff200; border-radius: 50%; box-shadow: 0 0 40px #fff200; animation: pulse 3s infinite; }
+        @keyframes pulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.1); } }
         
-        /* ПАРТИКЛЫ ВВЕРХ */
-        .p { position: absolute; bottom: -50px; pointer-events: none; animation: rise linear forwards; z-index: 0; }
-        @keyframes rise { to { transform: translateY(-110vh) rotate(360deg); opacity: 0; } }
+        .hill { position: absolute; bottom: 0; background: var(--grass); border-radius: 50% 50% 0 0; }
+        .h1 { width: 120%; height: 25vh; left: -10%; bottom: -5vh; background: #44bd32; z-index: 1; }
+        .h2 { width: 100%; height: 15vh; left: 0; bottom: 5vh; background: var(--grass); opacity: 0.8; }
+
+        /* ЧИСТЫЙ ДОНАЛЬД (SVG) */
+        #game { flex: 1; display: flex; align-items: center; justify-content: center; position: relative; }
+        #donald-svg { width: 220px; height: 220px; transition: transform 0.1s; cursor: pointer; filter: drop-shadow(0 10px 15px rgba(0,0,0,0.2)); }
+        
+        .item-slot { position: absolute; left: 50%; transform: translateX(-50%); pointer-events: none; font-size: 70px; display: none; }
+        #slot-h { top: -20px; z-index: 10; }
+        #slot-g { top: 40px; z-index: 11; font-size: 50px; }
 
         /* ИНТЕРФЕЙС */
-        header { padding: 45px 20px 10px; z-index: 10; }
-        #stat-card { background: rgba(255,255,255,0.8); padding: 15px; border-radius: 25px; border: 3px solid #000; text-align: center; box-shadow: 0 4px 0 #000; }
-        #balance { font-size: 45px; color: #000; margin-bottom: 5px; }
-        .e-bar { width: 100%; height: 12px; background: #eee; border: 2px solid #000; border-radius: 10px; overflow: hidden; }
-        #e-fill { height: 100%; width: 100%; background: #44ff22; transition: width 0.2s; }
-
-        /* ПЕРСОНАЖ */
-        #game { flex: 1; display: flex; align-items: center; justify-content: center; position: relative; z-index: 5; }
-        #char-box { position: relative; width: 220px; height: 220px; transition: transform 0.1s; }
-        #donald-img { width: 100%; height: 100%; object-fit: contain; }
-        
-        /* СЛОИ ОДЕЖДЫ (ТЕПЕРЬ ТЕКСТОВЫЕ/EMOJI ДЛЯ НАДЕЖНОСТИ) */
-        .item-layer { position: absolute; left: 50%; transform: translateX(-50%); pointer-events: none; font-size: 60px; text-shadow: 2px 2px 0 #000; display: none; }
-        #slot-head { top: -30px; font-size: 80px; z-index: 10; }
-        #slot-glasses { top: 20px; font-size: 50px; z-index: 11; }
-        #slot-shirt { bottom: 20px; font-size: 100px; z-index: 9; opacity: 0.9; }
+        header { padding: 40px 20px 10px; z-index: 100; }
+        .stats { background: white; padding: 15px; border-radius: 25px; border: 4px solid #000; text-align: center; }
+        #balance { font-size: 40px; color: #000; display: block; margin-bottom: 10px; }
+        .bar-bg { width: 100%; height: 14px; background: #eee; border: 3px solid #000; border-radius: 10px; overflow: hidden; }
+        #bar-fill { height: 100%; width: 100%; background: #4cd137; transition: width 0.2s; }
 
         /* МЕНЮ */
-        nav { background: #8b4513; display: flex; padding: 10px 0 25px; border-top: 4px solid #000; z-index: 100; }
-        .nav-btn { flex: 1; text-align: center; color: white; font-size: 10px; opacity: 0.7; }
-        .nav-btn.active { opacity: 1; color: var(--gold); }
-        .nav-btn div { font-size: 24px; }
+        nav { background: #825e5c; display: flex; padding: 10px 0 30px; border-top: 5px solid #000; box-shadow: 0 -5px 15px rgba(0,0,0,0.1); }
+        .n-btn { flex: 1; text-align: center; color: white; font-size: 11px; opacity: 0.7; cursor: pointer; }
+        .n-btn.active { opacity: 1; color: var(--gold); }
+        .n-btn b { font-size: 24px; display: block; }
 
         /* МОДАЛКИ */
-        .modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 1000; padding: 30px 20px; overflow-y: auto; color: white; }
-        .card { background: #333; padding: 15px; border-radius: 15px; margin-bottom: 10px; display: flex; align-items: center; justify-content: space-between; border: 2px solid #555; }
-        .buy { background: var(--gold); border: 2px solid #000; padding: 10px; border-radius: 10px; font-weight: bold; }
+        .modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 1000; padding: 30px 20px; color: white; }
+        .row { background: #222; padding: 15px; border-radius: 20px; margin-bottom: 10px; display: flex; align-items: center; justify-content: space-between; border: 2px solid #444; }
+        .btn { background: var(--gold); border: 2px solid #000; padding: 10px 15px; border-radius: 12px; font-weight: 900; color: #000; }
     </style>
 </head>
 <body>
 
-<div id="sky-bg"></div>
-<div id="ground"></div>
+<div id="farm-scene">
+    <div class="sun"></div>
+    <div class="hill h2"></div>
+    <div class="hill h1"></div>
+</div>
 
 <header>
-    <div id="stat-card">
-        <div id="balance">💰 <span id="val">0</span></div>
-        <div class="e-bar"><div id="e-fill"></div></div>
-        <div style="font-size:12px; color:#555; margin-top:5px;">⚡️ <span id="e-num">1000</span>/1000</div>
+    <div class="stats">
+        <span id="balance">💰 0</span>
+        <div class="bar-bg"><div id="bar-fill"></div></div>
+        <div style="font-size:12px; margin-top:5px; color:#666;">⚡️ <span id="e-val">1000</span>/1000</div>
     </div>
 </header>
 
 <div id="game" onclick="tap(event)">
-    <div id="char-box">
-        <img id="donald-img" src="https://upload.wikimedia.org/wikipedia/en/thumb/b/b4/Donald_Duck.svg/220px-Donald_Duck.svg.png">
-        <div id="slot-head" class="item-layer"></div>
-        <div id="slot-glasses" class="item-layer"></div>
-        <div id="slot-shirt" class="item-layer"></div>
+    <div id="donald-svg">
+        <svg viewBox="0 0 100 100" width="100%" height="100%">
+            <circle cx="50" cy="45" r="30" fill="white" stroke="black" stroke-width="2"/>
+            <circle cx="40" cy="40" r="4" fill="black"/>
+            <circle cx="60" cy="40" r="4" fill="black"/>
+            <path d="M 35 55 Q 50 75 65 55" fill="#fbc531" stroke="black" stroke-width="2"/>
+            <path d="M 20 80 Q 50 100 80 80" fill="white" stroke="black" stroke-width="2"/>
+        </svg>
+        <div id="slot-h" class="item-slot"></div>
+        <div id="slot-g" class="item-slot"></div>
     </div>
 </div>
 
 <nav>
-    <div class="nav-btn active" onclick="show('main',this)"><div>🏠</div>Farm</div>
-    <div class="nav-btn" onclick="show('wardrobe',this)"><div>👕</div>Одежда</div>
-    <div class="nav-btn" onclick="show('shop',this)"><div>🚀</div>Up</div>
+    <div class="n-btn active" onclick="show('main',this)"><b>🏠</b>Farm</div>
+    <div class="n-btn" onclick="show('ward',this)"><b>👕</b>Одежда</div>
+    <div class="n-btn" onclick="show('shop',this)"><b>🚀</b>Empire</div>
 </nav>
 
-<div id="wardrobe" class="modal">
-    <h2>ГАРДЕРОБ (EMOJI)</h2>
-    <div id="items-list"></div>
-    <button onclick="show('main')" style="width:100%; padding:15px; margin-top:20px;">ЗАКРЫТЬ</button>
+<div id="ward" class="modal">
+    <h2 style="text-align:center">ГАРДЕРОБ</h2>
+    <div id="ward-items"></div>
+    <button onclick="show('main')" style="width:100%; padding:20px; background:none; border:none; color:gray;">ЗАКРЫТЬ</button>
 </div>
 
 <div id="shop" class="modal">
-    <h2>ПРОКАЧКА</h2>
-    <div class="card"><span>Тап +5</span> <button class="buy" onclick="up('t')">💰 <span id="c-t">100</span></button></div>
-    <div class="card"><span>Авто +20</span> <button class="buy" onclick="up('a')">💰 <span id="c-a">500</span></button></div>
-    <button onclick="show('main')" style="width:100%; padding:15px;">ЗАКРЫТЬ</button>
+    <h2 style="text-align:center">МАГАЗИН</h2>
+    <div class="row"><span>Тап +5</span> <button class="btn" onclick="buy('t')">💰 <span id="c-t">100</span></button></div>
+    <div class="row"><span>Авто +20</span> <button class="btn" onclick="buy('a')">💰 <span id="c-a">500</span></button></div>
+    <button onclick="show('main')" style="width:100%; padding:20px; background:none; border:none; color:gray;">ЗАКРЫТЬ</button>
 </div>
 
 <script>
     const tg = window.Telegram.WebApp;
     tg.expand();
 
-    let s = JSON.parse(localStorage.getItem('d_v12')) || {
+    let d = JSON.parse(localStorage.getItem('d_v13')) || {
         score:0, tap:1, auto:0, ct:100, ca:500, e:1000,
-        inv:[], eq:{head:null, glasses:null, shirt:null}
+        inv:[], eq:{h:null, g:null}
     };
 
     const items = [
-        {id:'h1', cat:'head', name:'Кепка', sym:'🧢', p:500},
-        {id:'h2', cat:'head', name:'Ковбой', sym:'🤠', p:5000},
-        {id:'g1', cat:'glasses', name:'Очки', sym:'🕶', p:1500},
-        {id:'s1', cat:'shirt', name:'Майка', sym:'👕', p:3000},
-        {id:'s2', cat:'shirt', name:'Костюм', sym:'👔', p:10000}
+        {id:'h1', cat:'h', name:'Кепка', sym:'🧢', p:1000},
+        {id:'h2', cat:'h', name:'Шляпа', sym:'🎩', p:5000},
+        {id:'g1', cat:'g', name:'Очки', sym:'🕶', p:2500},
+        {id:'g2', cat:'g', name:'Маска', sym:'👺', p:10000}
     ];
 
-    function save() { localStorage.setItem('d_v12', JSON.stringify(s)); }
-
     function update() {
-        document.getElementById('val').innerText = Math.floor(s.score);
-        document.getElementById('e-num').innerText = Math.floor(s.e);
-        document.getElementById('e-fill').style.width = (s.e/10) + '%';
-        document.getElementById('c-t').innerText = s.ct;
-        document.getElementById('c-a').innerText = s.ca;
+        document.getElementById('balance').innerText = '💰 ' + Math.floor(d.score);
+        document.getElementById('e-val').innerText = Math.floor(d.e);
+        document.getElementById('bar-fill').style.width = (d.e/10) + '%';
+        document.getElementById('c-t').innerText = d.ct;
+        document.getElementById('c-a').innerText = d.ca;
 
-        ['head','glasses','shirt'].forEach(c => {
+        ['h','g'].forEach(c => {
             const el = document.getElementById('slot-'+c);
-            if(s.eq[c]) {
-                el.innerText = items.find(i=>i.id===s.eq[c]).sym;
+            if(d.eq[c]) {
+                el.innerText = items.find(i=>i.id===d.eq[c]).sym;
                 el.style.display = 'block';
             } else el.style.display = 'none';
         });
-        
-        const list = document.getElementById('items-list');
+
+        const list = document.getElementById('ward-items');
         list.innerHTML = '';
         items.forEach(i => {
-            const bought = s.inv.includes(i.id);
-            const active = s.eq[i.cat] === i.id;
-            list.innerHTML += `<div class="card"><span>${i.sym} ${i.name}</span>
-                <button class="buy" onclick="manage('${i.cat}','${i.id}',${i.p})" style="background:${active?'#44ff22':(bought?'#aaa':var(--gold))}">${active?'СНЯТЬ':(bought?'НАДЕТЬ':'КУПИТЬ '+i.p)}</button></div>`;
+            const has = d.inv.includes(i.id), on = d.eq[i.cat] === i.id;
+            list.innerHTML += `<div class="row"><span>${i.sym} ${i.name}</span>
+                <button class="btn" onclick="manage('${i.cat}','${i.id}',${i.p})" style="background:${on?'#4cd137':(has?'#aaa':'#fbc531')}">
+                ${on?'СНЯТЬ':(has?'НАДЕТЬ':'КУПИТЬ '+i.p)}</button></div>`;
         });
-        save();
+        localStorage.setItem('d_v13', JSON.stringify(d));
     }
 
     function tap(e) {
-        if(s.e < 1) return;
-        s.score += s.tap; s.e -= 1;
-        tg.HapticFeedback.impactOccurred('medium');
+        if(d.e < 1) return;
+        d.score += d.tap; d.e -= 1;
+        tg.HapticFeedback.impactOccurred('heavy');
         
-        const box = document.getElementById('char-box');
-        box.style.transform = 'scale(0.9) translateY(10px)';
-        setTimeout(()=>box.style.transform='scale(1)', 50);
-
-        const x = e.clientX || e.touches[0].clientX;
-        const p = document.createElement('div');
-        p.className = 'p'; p.innerText = '🌽';
-        p.style.left = x + 'px';
-        p.style.animationDuration = '1s';
-        document.body.appendChild(p);
-        setTimeout(()=>p.remove(), 1000);
+        const svg = document.getElementById('donald-svg');
+        svg.style.transform = 'scale(0.8) rotate(5deg)';
+        setTimeout(()=>svg.style.transform='scale(1) rotate(0deg)', 80);
+        
         update();
     }
 
-    function up(t){
-        if(t==='t' && s.score>=s.ct){ s.score-=s.ct; s.tap+=5; s.ct*=3; }
-        if(t==='a' && s.score>=s.ca){ s.score-=s.ca; s.auto+=20; s.ca*=3; }
+    function buy(type) {
+        if(type==='t' && d.score>=d.ct){ d.score-=d.ct; d.tap+=5; d.ct*=3; }
+        if(type==='a' && d.score>=d.ca){ d.score-=d.ca; d.auto+=20; d.ca*=3; }
         update();
     }
 
     function manage(cat, id, p) {
-        if(!s.inv.includes(id)) {
-            if(s.score >= p) { s.score -= p; s.inv.push(id); } else return;
+        if(!d.inv.includes(id)) {
+            if(d.score >= p) { d.score -= p; d.inv.push(id); } else return;
         }
-        s.eq[cat] = (s.eq[cat] === id) ? null : id;
+        d.eq[cat] = (d.eq[cat] === id) ? null : id;
         update();
     }
 
-    function show(id, btn) {
+    function show(id, b) {
         document.querySelectorAll('.modal').forEach(m=>m.style.display='none');
         if(id!=='main') document.getElementById(id).style.display='block';
-        document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
-        if(btn) btn.classList.add('active');
+        document.querySelectorAll('.n-btn').forEach(n=>n.classList.remove('active'));
+        if(b) b.classList.add('active');
     }
 
-    // Облака
-    for(let i=0; i<3; i++) {
-        let c = document.createElement('div'); c.className='cloud';
-        c.style.width = (100+i*20)+'px'; c.style.height='40px';
-        c.style.top = (100+i*50)+'px'; c.style.left = (i*100)+'px';
-        c.style.animationDuration = (15+i*5)+'s';
-        document.body.appendChild(c);
-    }
-
-    setInterval(() => { s.score += s.auto/10; if(s.e<1000) s.e+=1; update(); }, 100);
+    setInterval(() => { d.score += d.auto/10; if(d.e < 1000) d.e += 1.5; update(); }, 100);
     update();
 </script>
 </body>
